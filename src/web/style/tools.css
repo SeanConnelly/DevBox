@@ -1,0 +1,139 @@
+.tools-title {
+    color: var(--appTextColorThree);
+    padding: 0.3em 0.2em 0.3em 0.5em;
+    background-color: var(--appBackgroundFour);
+}
+#tools-gpt-input {
+    padding: 1em;
+    text-align: center;
+}
+#tools-gpt-input-textbox {
+    text-align: left;
+    display: block;
+    margin: 0 auto;
+    padding: 0.5em;
+    border-radius: 5px;
+    border: 1px solid gray;
+    color: gray;
+    width: 100%;
+    height: 8em;
+    background-color: var(--appBackgroundThree);
+}
+#tools-gpt-input-textbox:focus {
+    outline: none;
+    border-color: dodgerblue;
+    color: var(--appTextColor);
+}
+.placeholder {
+    color: #a9a9a9;
+}
+#tools-gpt-output {
+    width: calc(100% - 2em);
+    overflow-y: auto;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column-reverse;
+    margin-left: 1em;
+    margin-right: 1em;
+    margin-top: 1em;
+}
+.gpt-message {
+    margin-bottom: 0.5em;
+    padding: 0.5em 1em;
+    color: var(--appTextColor);
+    user-select: text;
+}
+.gpt-message {
+    white-space: pre-line;
+}
+.gpt-message pre:nth-child(even) {
+    white-space: pre;
+    background-color: black;
+    padding: 0.5em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+}
+.gpt-message-q {
+    background-color: var(--appBackgroundThree);
+}
+.gpt-message-a {
+    background-color: var(--appBackgroundFour);
+}
+.gpt-message div:nth-child(even) {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    padding: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    background-color: var(--appBackgroundTwo);
+    color: var(--appTextColor);
+    overflow-x: scroll;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.gpt-message-block {
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12px;
+    padding: 1em;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    background-color: var(--appBackgroundTwo);
+    color: var(--appTextColor);
+    overflow-x: scroll;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.gpt-key-anim {
+    width: 100%;
+    text-align: center;
+}
+
+.gpt-key {
+    fill: var(--appTextColorFour);
+    stroke: var(--appTextColorFive);
+    stroke-width: 0.5;
+    animation: typing 1.0s infinite;
+}
+
+.gpt-key:nth-child(2) {
+    animation-delay: 0.5s;
+}
+
+.gpt-key:nth-child(3) {
+    animation-delay: 1s;
+}
+
+@keyframes typing {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
+}
+
+.gpt-message-as-html {
+    background-color: var(--appBackgroundTwo);
+    color: var(--appTextColor);
+    overflow-x: scroll;
+    white-space: nowrap;
+    max-height: 66vh;
+}
+.gpt-message-as-xml {
+    overflow-x: scroll;
+    white-space: pre;
+    max-height: 66vh;
+}
+/* give table cells a border */
+.gpt-message-as-html table {
+    border-collapse: collapse;
+}
+.gpt-message-as-html table td,th {
+    border: 1px solid var(--appTextColor);
+    padding: 0.5em;
+}
+.gpt-message-as-json {
+    white-space: pre;
+}
