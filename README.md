@@ -1,8 +1,8 @@
-# DevBox IDE: The Future of Integrated Development Environments
+# DevBox IDE
 
 ## Overview
 
-Introducing DevBox, the evolution of the prototypical IDE previously called CloudStudio. This new version represents a substantial refactor, packed with an array of innovative features currently in alpha.
+Introducing DevBox, the evolution of the prototype IDE previously called CloudStudio. This new version represents a substantial refactor, packed with an array of innovative features currently in alpha.
 
 Features of DevBox include:
 
