@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-05 08:49:20">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-05 18:39:51">
 <Class name="DevBox.API.Main">
 <Super>%CSP.REST</Super>
 <TimeChanged>66656,78690.127286</TimeChanged>
@@ -1157,7 +1157,7 @@ Build method specific to Seans environment</Description>
 
 <Class name="DevBox.Util.DevBoxInstaller">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66660,31193.112994</TimeChanged>
+<TimeChanged>66660,67008.323629</TimeChanged>
 <TimeCreated>66659,42958.549029</TimeCreated>
 
 <Method name="Install">
@@ -1178,7 +1178,7 @@ Configures the DevBox and DevBoxApi applications</Description>
     do ..Uninstall()
 
     // install the DevBox application
-    set sc=..InstallDevBoxApplication($namespace,path)
+    set sc=..InstallDevBoxApplication($namespace,pathToCspFiles)
     if $$$ISERR(sc) write !,"Unable to create DevBox application. Reason: ",$SYSTEM.Status.GetOneErrorText(sc)," , quiting installation" quit
     write !,"DevBox Application installed correctly"
 
@@ -1197,9 +1197,14 @@ Configures the DevBox and DevBoxApi applications</Description>
 <Description>
 Removes the DevBox and DevBoxApi applications</Description>
 <ClassMethod>1</ClassMethod>
+<FormalSpec>namespace=""</FormalSpec>
 <Implementation><![CDATA[
+    if namespace="" set namespace=$namespace
+    zn "%SYS"
     set sc=##class(Security.Applications).Delete("/devbox")
     set sc=##class(Security.Applications).Delete("/devboxapi")
+    zn namespace
+    quit sc
 ]]></Implementation>
 </Method>
 
@@ -1207,13 +1212,24 @@ Removes the DevBox and DevBoxApi applications</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>namespace,path</FormalSpec>
 <Implementation><![CDATA[
+    zn "%SYS"
     if ##class(Security.Applications).Exists("/devbox")=0 {
         kill params
         set params("NameSpace")=namespace
         set params("DispatchClass")=""
         set params("Path")=path
+        set params("ServeFiles")=2
+        set params("Description")="DevBox IDE Application"
+        set params("Enabled")=1
+        set params("%ISCMgtPortal")="%ISCMgtPortal"
+        set params("AutheEnabled")=32
+        set params("UseCookies")=2
+        set params("CookiePath")="/csp/healthshare/"
+        set params("MatchedRoles")=":%DB_HSCUSTOM:%DB_HSLIB:%HS_DB_%DEFAULT:%HS_DB_HSSYS"
         set sc=##class(Security.Applications).Create("/devbox",.params)
     }
+    zn namespace
+    quit sc
 ]]></Implementation>
 </Method>
 
@@ -1221,12 +1237,22 @@ Removes the DevBox and DevBoxApi applications</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>namespace</FormalSpec>
 <Implementation><![CDATA[
+    zn "%SYS"
     if ##class(Security.Applications).Exists("/devboxapi")=0 {
         kill params
         set params("NameSpace")=namespace        
         set params("DispatchClass")="DevBox.API.Main"
+        set params("Description")="DevBox REST API"
+        set params("Enabled")=1
+        set params("%ISCMgtPortal")="%ISCMgtPortal"
+        set params("AutheEnabled")=32
+        set params("UseCookies")=2
+        set params("CookiePath")="/csp/healthshare/"
+        set params("MatchedRoles")=":%DB_HSCUSTOM:%DB_HSLIB:%HS_DB_%DEFAULT:%HS_DB_HSSYS"
         set sc=##class(Security.Applications).Create("/devboxapi",.params)
     }
+    zn namespace
+    quit sc
 ]]></Implementation>
 </Method>
 
