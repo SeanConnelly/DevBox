@@ -145,12 +145,12 @@ export class App {
     }
 
     ExportPackageByName(namespace,packageName) {
-        let url = `/devbox/${namespace}/action/export/package/${packageName}`
+        let url = `/devboxapi/${namespace}/action/export/package/${packageName}`
         window.open(url,'_blank');
     }
 
     ExportClassByName(namespace,className) {
-        let url = `/devbox/${namespace}/action/export/class/${className}`
+        let url = `/devboxapi/${namespace}/action/export/class/${className}`
         window.open(url,'_blank');
     }
 
@@ -167,7 +167,7 @@ export class App {
     }
 
     ImportCodeLocal(namespace,fileInput) {
-        fetch(`/devbox/${namespace}/action/import`, {
+        fetch(`/devboxapi/${namespace}/action/import`, {
             method: 'POST',
             body: fileInput.files[0],
         })
@@ -177,7 +177,7 @@ export class App {
     }
 
     CopyClassByName(namespace,fromClassName,toClassName) {
-        fetch(`/devbox/${namespace}/action/copy/class/${fromClassName}/${toClassName}`, {
+        fetch(`/devboxapi/${namespace}/action/copy/class/${fromClassName}/${toClassName}`, {
             method: 'GET'
         })
             .then(response => response.text())
@@ -186,7 +186,7 @@ export class App {
     }
 
     RenameClassByName(namespace,fromClassName,toClassName) {
-        fetch(`/devbox/${namespace}/action/rename/class/${fromClassName}/${toClassName}`, {
+        fetch(`/devboxapi/${namespace}/action/rename/class/${fromClassName}/${toClassName}`, {
             method: 'GET'
         })
             .then(response => response.text())
@@ -209,7 +209,7 @@ GPTInputTextBox.addEventListener("blur", function() {
 
 //keep session alive, TODO: make it stop if there is no activity for a while
 window.setInterval( () => {
-    let url = '/devbox/ping';
+    let url = '/devboxapi/ping';
     fetch(url, {
         method: 'GET'
     })

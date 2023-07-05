@@ -54,7 +54,7 @@ export class Document {
     }
 
     copyDocument() {
-        return fetch(`/devbox/action/copy-document`,{
+        return fetch(`/devboxapi/action/copy-document`,{
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({name:this.name})

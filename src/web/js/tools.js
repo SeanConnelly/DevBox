@@ -45,7 +45,7 @@ export class Tools {
     }
 
     askGPT(prompt) {
-        let url = `/devbox/openai/completion/`;
+        let url = `/devboxapi/openai/completion/`;
         fetch(url, {
             method: 'POST',
             headers: {

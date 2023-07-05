@@ -14,7 +14,7 @@ export class System {
     }
 
     static GetNameSpaceDefaultUrlPath(namespace) {
-        return fetch(`/devbox/namespace/${namespace}/defaultUrlPath`,{
+        return fetch(`/devboxapi/namespace/${namespace}/defaultUrlPath`,{
             method: 'GET'
         })
         .then( res => res.text() )

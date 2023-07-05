@@ -33,8 +33,8 @@ export class DialogBox {
                     <div class="flex-1"></div>
                     <div class="dialog-box--panel">
                         <div class="dialog-box--title">${title}</div>
-                        <div class="dialog-box--body">
-                            <input class="dialog-box--input" id="newItemName">&nbsp;.${extension}
+                        <div class="dialog-box--body flex-row">
+                            <div class="dialog-box--input"><input id="newItemName" style="width:400px;"><span class="pad-left-1em">.${extension}</span></div>
                         </div>
                         <div class="dialog-box--footer flex-row">
                             <div class="flex-1"></div>
@@ -44,7 +44,7 @@ export class DialogBox {
                             </div>
                         </div>                                                
                     </div>
-                    <div class="flex-1"></div>
+                    <div class="flex-2"></div>
                 </div>
                 <div class="flex-1"></div>
             </div>

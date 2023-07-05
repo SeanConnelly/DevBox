@@ -1,0 +1,1252 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-05 08:49:20">
+<Class name="DevBox.API.Main">
+<Super>%CSP.REST</Super>
+<TimeChanged>66656,78690.127286</TimeChanged>
+<TimeCreated>66531,51410.686739</TimeCreated>
+
+<XData name="UrlMap">
+<Data><![CDATA[
+<Routes>
+<Route Url="/ping" Method="GET" Call="Ping" />
+
+<Route Url="/namespace/:ns/defaultUrlPath" Method="GET" Call="GetNamespaceDefaultUrlPath" />
+
+<Route Url="/openai/completion/" Method="POST" Call="PostPromptGetCompletion" />
+
+<Route Url="/:ns/action/goto-code" Method="POST" Call="GotoCode" />
+
+<Route Url="/:ns/action/compile/class/:name" Method="GET" Call="CompileClassByName" />
+
+<Route Url="/:ns/action/copy/class/:from/:to" Method="GET" Call="CopyClassByName" />
+<Route Url="/:ns/action/rename/class/:from/:to" Method="GET" Call="RenameClassByName" />
+
+<Route Url="/:ns/action/copy/package/:name" Method="GET" Call="CopyPackageByName" />
+<Route Url="/:ns/action/rename/package/:name" Method="GET" Call="RenamePackageByName" />
+
+<Route Url="/:ns/action/export/package/:name" Method="GET" Call="ExportPackageByName" />
+<Route Url="/:ns/action/export/class/:name" Method="GET" Call="ExportClassByName" />
+
+<Route Url="/:ns/action/export/routines/:name" Method="GET" Call="ExportRoutinesByPackageName" />
+<Route Url="/:ns/action/export/routine/:name" Method="GET" Call="ExportRoutineByName" />
+
+<Route Url="/:ns/action/export/web-folder/:name" Method="GET" Call="ExportWebFolderByName" />
+<Route Url="/:ns/action/export/web-file/:name" Method="GET" Call="ExportWebFileByName" />
+
+<Route Url="/:ns/action/import" Method="POST" Call="ImportFile" />
+
+</Routes>
+]]></Data>
+</XData>
+
+<Method name="Ping">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%DynamicAbstractObject</ReturnType>
+<Implementation><![CDATA[
+	write 1 
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetNamespaceDefaultUrlPath">
+<Description>
+write ##class(DevBox.API.Main).GetNamespaceDefaultUrlPath("Apollo")</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>ns</FormalSpec>
+<Implementation><![CDATA[
+	set defaultUrlPath=""
+	set thisNamespace=$namespace
+	zn "%SYS"
+	&sql(select ID
+		 into :defaultUrlPath
+		 from Security.Applications
+		 where Namespace = :ns
+		 and IsNameSpaceDefault = 1)
+	zn thisNamespace		 
+	write defaultUrlPath
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="GetCode">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%DynamicAbstractObject</ReturnType>
+<Implementation><![CDATA[	set body=%request.Content.Read(%request.Content.Size)
+]]></Implementation>
+</Method>
+
+<Method name="PostPromptGetCompletion">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>prompt</FormalSpec>
+<Implementation><![CDATA[
+	set prompt=%request.Content.Read(3600000)
+	
+	//do ObjectScript code
+	if ($e($zcvt(prompt,"L"),1,3)="do ")||($e($zcvt(prompt,"L"),1,6)="write ") {
+		return ##class(DevBox.Assistant.CodeRunner).RunCode(prompt)
+	}
+
+	//do ObjectScript code
+	if $e($zcvt(prompt,"L"),1,7)="select " {
+		return ##class(DevBox.Assistant.CodeRunner).RunSQL(prompt)
+	}
+
+	//get GPT completion
+	set completion=##class(DevBox.OpenAI.Completions).getCompletion(prompt)
+	write completion
+	return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ImportFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	zn pNamespace
+	set sc=##class(%SYSTEM.OBJ).LoadStream(%request.Content)
+	quit sc
+]]></Implementation>
+</Method>
+
+<Method name="ExportClassByName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set %response.ContentType="application/xml"
+    do %response.SetHeader("Content-Disposition","attachment;filename="""_pName_"_"_$zd($h,8)_$tr($zt($p($h,",",2)),":")_".xml""")
+    set %response.NoCharSetConvert=1
+	set %response.Headers("Access-Control-Allow-Origin")="*"
+	do ##class(%SYSTEM.OBJ).Export(pName)
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExportPackageByName">
+<Description>
+Export Class Package</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    set %response.ContentType="application/xml"
+    do %response.SetHeader("Content-Disposition","attachment;filename="""_pName_"_ALL_"_$zd($h,8)_$tr($zt($p($h,",",2)),":")_".xml""")
+    set %response.NoCharSetConvert=1
+	set %response.Headers("Access-Control-Allow-Origin")="*"
+	do ##class(%SYSTEM.OBJ).Export(pName_".*.cls")
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CopyClassByName">
+<Description>
+Copy Class</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pNameFrom:%String,pNameTo:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "copy ",pNameFrom," to ",pNameTo
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RenameClassByName">
+<Description>
+Rename Class</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pNameFrom:%String,pNameTo:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "rename ",pNameFrom," to ",pNameTo
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="CopyPackageByName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "TODO: copy package "_pName_" !"
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RenamePackageByName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "TODO:  rename package "_pName_" !"
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExportRoutinesByPackageName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "TODO: Export routines by package name "_pName_" !"
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExportRoutineByName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "TODO: export routine by name "_pName_" !"
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExportWebFolderByName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "TODO: Export web folder by name "_pName_" !"
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="ExportWebFileByName">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	write "TODO: Export web file by name "_pName_" !"
+	quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Assistant.CodeRunner">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66640,44034.021212</TimeChanged>
+<TimeCreated>66615,26700.678529</TimeCreated>
+
+<Method name="RunCode">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>code</FormalSpec>
+<Implementation><![CDATA[
+    try {
+        set temp=""
+        
+        if $e(code,1,5)="write" {
+            set temp=""
+            set code="() set temp="_$e(code,6,*)_" quit temp"
+            set temp=$xecute(code)
+        } else {
+            xecute code
+        }
+        if $IsObject(temp) {
+            try {
+                do ##class(DevBox.Lib.JSON.ObjectSerializer).ToJSON(temp,.json)
+                do json.OutputToDevice()
+            } catch (ex2) {
+                zwrite temp
+            }
+        } else {
+            write temp
+        }
+    } catch (ex) {
+        write !,"<div>Error: ",ex.DisplayString()
+        write !,"<br>Line:",##class(Cogs.Lib.Dictionary).GetRoutineCodeForLineLabel($Piece($Piece($zerror,">",2)," ")),"</div>"
+    }
+    return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="RunSQL">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>sql</FormalSpec>
+<Implementation><![CDATA[
+    try {
+        set stmt=##class(%SQL.Statement).%New()
+        set sc=stmt.%Prepare(.sql)
+        if $$$ISERR(sc) write $SYSTEM.Status.GetOneErrorText(sc) return $$$OK
+        set rs=stmt.%Execute()
+        write "<table>"
+        write "<tr>"
+        for i=1:1:rs.%ResultColumnCount {
+            write "<th>", rs.%GetMetadata().columns.GetAt(i).colName, "</th>"
+        }
+        write "</tr>"
+        while (rs.%Next()) {
+            write "<tr>"
+            for i=1:1:rs.%ResultColumnCount {
+                write "<td>", rs.%GetData(i), "</td>"
+            }
+         write "</tr>"
+        }
+        write "</table>"
+    } catch (ex) {
+        write ex.DisplayString()
+    }
+    return $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Index">
+<Super>%CSP.Page</Super>
+<TimeChanged>66660,18157.49586</TimeChanged>
+<TimeCreated>66470,33492.553722</TimeCreated>
+
+<Method name="OnPage">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<ServerOnly>1</ServerOnly>
+<Implementation><![CDATA[
+	&html<
+	
+	<!DOCTYPE html>
+	<html lang="en">
+	<head>
+	    <meta charset="UTF-8">
+	    <title>DevBox IDE</title>
+
+		<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+
+		<link rel="stylesheet" data-name="vs/editor/editor.main" href="./lib/vs/editor/editor.main.css" />
+		
+		<link rel="icon" href="favicon.png">
+
+	    <link rel="stylesheet" href="./style/reset.css">
+	    <link rel="stylesheet" href="./style/vars.css">
+	    <link rel="stylesheet" href="./style/utils.css">
+	    <link rel="stylesheet" href="./style/layout.css">
+	    <link rel="stylesheet" href="./style/menu.css">
+	    <link rel="stylesheet" href="./style/explorer.css">
+	    <link rel="stylesheet" href="./style/editor.css">
+	    <link rel="stylesheet" href="./style/tablayout.css">
+	    <link rel="stylesheet" href="./style/tools.css">	    
+	        
+	</head>
+	<body>
+
+	<div class="viewport hidden" id="viewport">
+
+		<!-- top menu -->
+		#(..TopMenu())#
+
+		<!-- explorer -->
+		#(..Explorer())#
+		
+		<!-- explorer dragbar -->
+		<div onmousedown="DevBoxEventController.publishEvent('ExplorerDragbar','start',false)" class="explorer-dragbar" id="explorerDragbar"></div>
+		
+		<!-- editors -->
+		<div class="editors" id="editSpaceContainer">
+			<div class="pad-1em" style="color:#777">Initialising...</div>
+		</div>
+	    
+	    <!-- output windows -->
+		<div class="status-window" id="statusWindow" data-state='closed'>
+
+			<!-- output dragbar -->
+			<div onmousedown="DevBoxEventController.publishEvent('OutputDragbar','start',false)" class="output-dragbar" id="outputDragbar"></div>
+		
+			<!-- status bar -->
+			<div class="status-bar flex-row" id="statusBar">
+				<div class="flex-1 flex-row status-bar-tabs">
+					<button onclick="DevBoxEventController.publishEvent('StatusWindow','output',false,true)" class="status-bar-button">Output</button>
+				</div>
+				<div class="flex-1 flex-row status-bar-status">
+					<span id="CursorPosition">0:0</span>
+				</div>
+				<div class="flex-1 flex-row status-bar-info">
+					<div class="float-right">
+						<!-- MINIMISE / PIN -->
+					</div>
+				</div>
+			</div>
+			
+			<div class="output-window" id="outputWindow">
+			</div>
+		
+		</div>
+		
+		<!-- explorer dragbar -->
+		<div onmousedown="DevBoxEventController.publishEvent('ToolsDragbar','start',false)" class="tools-dragbar" id="toolsDragbar"></div>
+		
+		<!-- Tools Window : ChatGPT, Inspector... -->
+		#(..Tools())#
+		  
+	</div>
+
+	</body>
+
+
+	<script language="javascript">
+	var require = { paths: { vs: './lib/vs' } };
+   </script>
+	<script src="./lib/vs/loader.js"></script>
+	<script src="./lib/vs/editor/editor.main.nls.js"></script>
+	<script src="./lib/vs/editor/editor.main.js"></script>
+	
+	<script type="module" src="./main.js"></script>
+
+		 
+	<script language="javascript">
+		#(..InitialiseAppData())#
+		
+		feather.replace();
+
+	</script>
+	</html>
+	
+	>
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="InitialiseAppData">
+<Description>
+TODO: Quick hack, move into an API</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	
+	//user name
+	write !,"CloudStudioAppDefault = {};"
+	write !,"CloudStudioAppDefault.User='",$USERNAME,"';"
+	
+	//default namespace
+	set thisNamespace=$NAMESPACE
+	zn "%SYS"
+	set user=##class(Security.Users).%OpenId($USERNAME)
+	set defaultNamespace=user.NameSpace
+	if defaultNamespace="" set defaultNamespace=thisNamespace
+	zn thisNamespace
+	write !,"CloudStudioAppDefault.NS='",defaultNamespace,"';"
+	
+	quit ""
+]]></Implementation>
+</Method>
+
+<Method name="TopMenu">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	&html<
+	
+	<div class="menu-bar flex-row" id="top-menu">
+	
+	<div class="flex-row flex-1">
+	
+		<button class="rel menu-top-button" id="kebab-menu" onclick="DevBoxEventController.publishEvent('MinimiseExplorer','',false,true)">
+			<i data-feather="menu"></i>
+		</button>
+		
+		<button class="rel menu-top-button" id="file-menu">File
+		  <div class="sub-menu menu-below">
+		  
+  		    <div class="rel">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="database"></i></div><div class="flex-1 pad-right-1em">Change Namespace</div><div><i data-feather="chevron-right"></i></div></div>	    	
+			    <div class="sub-menu menu-aside menu-aside-more">
+					<%=..OutputNamespaces()%>
+			    </div>	
+		    </div>
+		    		    
+			<div class="menu-divide"></div>
+		  
+		    <div class="rel">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="file-plus"></i></div><div class="flex-1 pad-right-1em">New Class</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside menu-aside-more">
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Registered',false,true)" class="flex-row flex-center-items h16">Registered</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Persistent',false,true)" class="flex-row flex-center-items h16">Persistent</div>
+			    	<div class="menu-divide"></div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Registered XML',false,true)" class="flex-row flex-center-items h16">Registered + XML</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Persistent XML',false,true)" class="flex-row flex-center-items h16">Persistent + XML</div>			    	
+			    	<div class="menu-divide"></div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Serial',false,true)" class="flex-row flex-center-items h16">Serial</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Abstract',false,true)" class="flex-row flex-center-items h16">Abstract</div>
+			    	<div class="menu-divide"></div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','CSP',false,true)" class="flex-row flex-center-items h16">CSP Class</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Web Service</div>
+			    </div>	
+		    </div>
+		    
+		    <div class="rel">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="file-plus"></i></div><div class="flex-1 pad-right-1em">New Routine</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside menu-aside-more">
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Routine',false,true)" class="flex-row flex-center-items h16">ObjectScript</div>
+			    	<div class="menu-divide"></div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Basic</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">MultiValue</div>
+			    	<div class="menu-divide"></div>			    	
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Macro',false,true)" class="flex-row flex-center-items h16">Macro Include</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Prompt User For New Document','Intermediary',false,true)" class="flex-row flex-center-items h16">Intermediary</div>			    	
+			    </div>	
+		    </div>
+		    
+		   <div class="rel">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="file-plus"></i></div><div class="flex-1 pad-right-1em">New Web File</div><div><i data-feather="chevron-right"></i></div></div>		   
+			    <div class="sub-menu menu-aside menu-aside-more">
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">CSP Page</div>
+			    	<div class="menu-divide"></div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">JavaScript</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">TypeScript</div>
+			    	<div class="menu-divide"></div>			    	
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">CSS</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">HTML</div>			    	
+			    </div>	
+		    </div>
+
+		   <div class="rel">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="file-plus"></i></div><div class="flex-1 pad-right-1em">New Production</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside menu-aside-more">
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Service</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Service Adapter</div>			    	
+			    	<div class="menu-divide"></div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Message</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">BPL Process</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Custom Process</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">DTL Transformation</div>			    	
+			    	<div class="menu-divide"></div>			    	
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Operation</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Operation Adapter</div>			    	
+			    	<div class="menu-divide"></div>			    	
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Production</div>
+			    </div>	
+		    </div>
+
+		   <div class="rel">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="file-plus"></i></div><div class="flex-1 pad-right-1em">New Custom</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside menu-aside-more">
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Unit Test</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">ZPM Package</div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">DeepSee KPI</div>			    	
+			    	<div class="menu-divide"></div>
+			    	<div class="disabled" onclick="DevBoxEventController.publishEvent('Prompt User For New Document','',false,true)" class="flex-row flex-center-items h16">Custom Defintion</div>
+			    </div>	
+		    </div>
+
+		    <div class="menu-divide"></div>
+		    <div onclick="DevBoxEventController.publishEvent('Save')">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="save"></i></div><div class="flex-1 pad-right-1em">Save</div></div>
+			</div>
+		    <div onclick="DevBoxEventController.publishEvent('SaveAll')">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="save"></i></div><div class="flex-1 pad-right-1em">Save All</div></div>
+			</div>
+		    <div onclick="DevBoxEventController.publishEvent('SaveCopyAs')" class="disabled">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="copy"></i></div><div class="flex-1 pad-right-1em">Save Copy As...</div></div>
+			</div>
+		    <div onclick="DevBoxEventController.publishEvent('Rename')" class="disabled">
+				<div class="flex-row flex-center-items"><div class="pad-right-1em grey"><i data-feather="edit-3"></i></div><div class="flex-1 pad-right-1em">Rename...</div></div>
+			</div>
+		  </div>
+		</button>
+		
+		<button class="rel menu-top-button" id="edit-menu">Edit
+		  <div class="sub-menu menu-below">
+		    <div onclick="DevBoxEventController.publishEvent('Undu','',false,true)" class="flex-row flex-center-items h16">Undu</div>
+		    <div onclick="DevBoxEventController.publishEvent('Redo','',false,true)" class="flex-row flex-center-items h16">Redo</div>
+		    <div class="menu-divide"></div>
+		    <div onclick="DevBoxEventController.publishEvent('Cut','',false,true)" class="flex-row flex-center-items h16">Cut</div>
+		    <div onclick="DevBoxEventController.publishEvent('Copy','',false,true)" class="flex-row flex-center-items h16">Copy</div> 
+		    <div onclick="DevBoxEventController.publishEvent('Paste','',false,true)" class="flex-row flex-center-items h16">Paste</div>
+		    <div onclick="DevBoxEventController.publishEvent('Delete','',false,true)" class="flex-row flex-center-items h16">Delete</div>
+		    <div class="menu-divide"></div>        
+		    <div onclick="DevBoxEventController.publishEvent('SelectAll','',false,true)" class="flex-row flex-center-items h16">Select All</div>
+		    <div class="menu-divide"></div>        
+		    <div onclick="DevBoxEventController.publishEvent('Find','',false,true)" class="flex-row flex-center-items h16">Find...</div>
+		    <div onclick="DevBoxEventController.publishEvent('Replace','',false,true)" class="flex-row flex-center-items h16">Replace...</div>
+		    <div class="menu-divide"></div>
+		    <div  onclick="DevBoxEventController.publishEvent('FindInFiles','',false,true)" class="flex-row flex-center-items h16">Find in Files...</div>		    
+		  </div>
+		</button>
+		
+		<button class="rel menu-top-button" id="view-menu">View
+     	 <div class="sub-menu menu-below">
+		    <div onclick="DevBoxEventController.publishEvent('ToggleFullScreen','',false,true)" class="flex-row flex-center-items h16">Full Screen</div>
+		    <div class="rel">
+				<div class="flex-row flex-center-items"><div class="flex-1 pad-right-1em">Text Size</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside">
+				    <div onclick="DevBoxEventController.publishEvent('TextSize','Small')" class="flex-row flex-center-items h16">Small</div>
+			    	<div onclick="DevBoxEventController.publishEvent('TextSize','Normal')" class="flex-row flex-center-items h16">Normal</div>
+			    	<div onclick="DevBoxEventController.publishEvent('TextSize','Large')" class="flex-row flex-center-items h16">Large</div>
+			    	<div onclick="DevBoxEventController.publishEvent('TextSize','ExtraLarge')" class="flex-row flex-center-items h16">Extra Large</div>
+			    </div>		    
+		    </div>
+		    <div class="menu-divide"></div>
+		    <div onclick="DevBoxEventController.publishEvent('ShowLineNumbers','toggle',false,true)" class="flex-row flex-center-items h16">Show Line Numbers</div>
+		    <div onclick="DevBoxEventController.publishEvent('ShowMiniMap','toggle',false,true)" class="flex-row flex-center-items h16">Show Mini Map</div>
+   		    <div class="menu-divide"></div>
+   		    <div class="rel">
+			    <div class="flex-row flex-center-items"><div class="flex-1 pad-right-1em">Appearance</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside">
+			    	<div onclick="DevBoxEventController.publishEvent('Model.Appearance','light',true,true)" class="flex-row flex-center-items h16">Light</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.Appearance','dark',true,true)" class="flex-row flex-center-items h16">Dark</div>
+			    </div>	
+		    </div>
+   		    <div class="rel">
+		    	<div class="flex-row flex-center-items"><div class="flex-1 pad-right-1em">Accent Color</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside">
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','red',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-red">&nbsp;</span>Red</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','brown',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-brown">&nbsp;</span>Brown</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','orange',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-orange">&nbsp;</span>Orange</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','yellow',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-yellow">&nbsp;</span>Yellow</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','green',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-green">&nbsp;</span>Green</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','mint',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-mint">&nbsp;</span>Mint</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','cyan',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-cyan">&nbsp;</span>Cyan</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','blue',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-blue">&nbsp;</span>Blue</div>
+			    	<div onclick="DevBoxEventController.publishEvent('Model.AccentColor','magenta',false,true)" class="flex-row flex-center-items h16"><span class="menu-view--color bg-magenta">&nbsp;</span>Magenta</div>
+			    </div>	
+		    </div>
+		    <div class="menu-divide"></div>
+		    <div onclick="DevBoxEventController.publishEvent('ReloadPage','',false,true)" class="flex-row flex-center-items h16">Reload</div>
+		    <div onclick="DevBoxEventController.publishEvent('ResetPage','',false,true)" class="flex-row flex-center-items h16">Reset</div>
+		    <div class="menu-divide"></div>
+		    <div class="disabled" onclick="DevBoxEventController.publishEvent('ViewOtherCode','',false,true)" class="flex-row flex-center-items h16">View Other Code</div>
+		    <div class="menu-divide"></div>
+		    <div class="rel">
+		    	<div class="flex-row flex-center-items"><div class="flex-1 pad-right-1em">Fold</div><div><i data-feather="chevron-right"></i></div></div>
+			    <div class="sub-menu menu-aside">
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','1',false,true)" class="flex-row flex-center-items h16">Level 1</div>
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','2',false,true)" class="flex-row flex-center-items h16">Level 2</div>
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','3',false,true)" class="flex-row flex-center-items h16">Level 3</div>
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','4',false,true)" class="flex-row flex-center-items h16">Level 4</div>			    				    	
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','5',false,true)" class="flex-row flex-center-items h16">Level 5</div>
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','6',false,true)" class="flex-row flex-center-items h16">Level 6</div>
+			    	<div onclick="DevBoxEventController.publishEvent('FoldLevel','7',false,true)" class="flex-row flex-center-items h16">Level 7</div>
+			    </div>	
+		    </div>
+		    <div onclick="DevBoxEventController.publishEvent('FoldAll','',false,true)" class="flex-row flex-center-items h16">Fold All Code</div>
+		    <div onclick="DevBoxEventController.publishEvent('UnfoldAll','',false,true)" class="flex-row flex-center-items h16">Unfold All Code</div>
+	     </div>
+		</button>
+
+		<button class="rel menu-top-button" id="project-menu">Project
+		 <div class="sub-menu menu-below">
+		    <div class="disabled" class="flex-row flex-center-items h16">Manage Project</div>
+		    <div class="disabled" class="flex-row flex-center-items h16">Baseline Project</div>
+		    <div class="menu-divide"></div>
+		    <div class="disabled" class="flex-row flex-center-items h16">Export Project</div>
+		    <div class="disabled" class="flex-row flex-center-items h16">Import Project</div>			
+		    <div class="menu-divide"></div>
+		    <div class="disabled" class="flex-row flex-center-items h16">Open Project</div>
+		    <div class="disabled" class="flex-row flex-center-items h16">New Project</div>
+		    <div class="disabled" class="flex-row flex-center-items h16">Rename Project</div>
+		    <div class="disabled" class="flex-row flex-center-items h16">Copy Project</div>		    
+		    <div class="disabled" class="flex-row flex-center-items h16">Close Project</div>
+	     </div>
+		</button>
+				
+		<button class="rel menu-top-button" id="edit-menu">Build
+		  <div class="sub-menu menu-below">
+		    <div onclick="DevBoxEventController.publishEvent('Compile','',false,true)" class="flex-row flex-center-items h16">Compile</div>
+		    <div class="menu-divide"></div>
+		    <div  onclick="DevBoxEventController.publishEvent('CompileAllOpen','',false,true)" class="flex-row flex-center-items h16">Compile All Open</div>
+		  </div>
+		</button>
+		
+		<button class="rel menu-top-button" id="tools-menu">Tools
+		  <div class="sub-menu menu-below">
+		    <div onclick="document.getElementById('import-local-file').click();" class="flex-row flex-center-items h16">Import Code Local
+				<form id="import-code-form" style="display:none;">
+					<input type="file" id="import-local-file" accept=".xml" onchange="DevBoxEventController.publishEvent('ImportCodeLocal',this,false,true);this.value='';"/>
+				</form>
+			</div>
+			<div class="menu-divide"></div>
+		    <div onclick="DevBoxEventController.publishEvent('ExportCode','',false,true)" class="flex-row flex-center-items h16">Export Code Remote</div>
+		    <div onclick="DevBoxEventController.publishEvent('ImportCode','',false,true)" class="flex-row flex-center-items h16">Import Code Remote</div>
+			<div class="menu-divide"></div>
+			<div onclick="DevBoxEventController.publishEvent('ViewCSPPage','',false,true)" class="flex-row flex-center-items h16">View CSP Page</div>
+			<div onclick="DevBoxEventController.publishEvent('WatchCSPPage','',false,true)" class="flex-row flex-center-items h16">Watch CSP Page</div>			
+		  </div>
+		</button>
+		
+	</div>
+	<div class="flex-row">
+		<button onclick="DevBoxEventController.publishEvent('Save','',false,true)" class="rel icon-button" id="tools-menu"><i data-feather="save"></i></button>
+		<button onclick="DevBoxEventController.publishEvent('Compile','',false,true)" class="rel icon-button" id="tools-menu"><i data-feather="cpu"></i></button>
+	</div>
+	<div class="flex-row flex-1">	
+		<button class="rel menu-top-button push-right" id="utils-menu">Utilities
+			<div class="sub-menu menu-below-right">
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','Management Portal',false,true)" class="flex-row flex-center-items h24">Management Portal</div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','SQL Explorer',false,true)" class="flex-row flex-center-items h24">SQL Explorer</div>    		     		     
+		     <div class="menu-divide"></div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','Class Reference',false,true)" class="flex-row flex-center-items h24">Class Reference</div>    		     		     		     
+		     <div class="menu-divide"></div>    
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','Production Configuration',false,true)" class="flex-row flex-center-items h24">Production Configuration</div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','Production Monitor',false,true)" class="flex-row flex-center-items h24">Production Monitor</div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','System Monitor',false,true)" class="flex-row flex-center-items h24">System Monitor</div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','Message Viewer',false,true)" class="flex-row flex-center-items h24">Message Viewer</div>
+		     <div class="menu-divide"></div> 
+		     <div onclick="DevBoxEventController.publishEvent('LaunchUtility','Web Terminal',false,true)" class="flex-row flex-center-items h24">Web Terminal</div>     
+		  </div>
+		</button>
+		<button class="rel menu-top-button" id="help-menu">Help
+		  <div class="sub-menu menu-below-right">
+		     <div onclick="DevBoxEventController.publishEvent('LaunchHelp','InterSystems Documentation',false,true)" class="flex-row flex-center-items h24">InterSystems Documentation</div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchHelp','InterSystems Community',false,true)" class="flex-row flex-center-items h24">InterSystems Community</div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchHelp','InterSystems Discord',false,true)" class="flex-row flex-center-items h24">InterSystems Discord</div>
+		     <div class="menu-divide"></div>
+		     <div onclick="DevBoxEventController.publishEvent('LaunchHelp','CloudStudio GitHub',false,true)" class="flex-row flex-center-items h24">CloudStudio GitHub</div>    		     		     
+		     <div onclick="DevBoxEventController.publishEvent('LaunchHelp','CloudStudio Discord',false,true)" class="flex-row flex-center-items h24">CloudStudio Discord</div>
+		  </div>
+		</button>
+		</button>
+		<button class="rel menu-top-button" id="kebab-menu" onclick="DevBoxEventController.toggleBooleanItemEvent('MinimiseTools','open',true)">
+			<i data-feather="codesandbox"></i>
+		</button>
+	</div>	
+	</div>
+	
+	>
+	quit ""
+]]></Implementation>
+</Method>
+
+<Method name="OutputNamespaces">
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+	set sc=##class(%SYS.Namespace).ListAll(.nsl)
+	set ns=$o(nsl(""))
+	while ns'="" {
+		if $e(ns)'="^" write "<div onclick=""DevBoxEventController.publishEvent('SwapNamespace','"_ns_"',false,true)"" class=""flex-row flex-center-items h24"">"_ns_"</div>"
+		set ns=$o(nsl(ns))
+	}
+	quit ""
+]]></Implementation>
+</Method>
+
+<Method name="Explorer">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	&html<
+	
+	<div class="explorer flex-col" data-state="open" id="explorerPanel">
+		<div class="explorer-title flex-row flex-center-items">
+	  		<span id="namespace"></span>
+	  		<button class="flex-right menu-top-button rel" id="file-menu">
+	  		  <i data-feather="more-vertical"></i>
+	          <div class="sub-menu menu-below-right">
+	            <div onclick="DevBoxEventController.publishEvent('ExpandAll','',false,true)" id="">Expand All</div>
+	            <div onclick="DevBoxEventController.publishEvent('CollapseAll','',false,true)" id="">Collapse All</div>
+	          </div>
+	        </button>
+		</div>
+		<div class="flex-grow code-tree" id="explorer-tree"></div>
+	</div>
+	
+	>
+	quit ""
+]]></Implementation>
+</Method>
+
+<Method name="Tools">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	
+	&html<
+	
+	<div class="tools-container flex-col" data-state="open" id="toolsPanel">
+		<div class="tools-title flex-row flex-center-items">
+	  		<span id="tools-title-name">Code Assistant</span>
+	  		<button class="flex-right menu-top-button rel" id="file-menu">
+	  		  <i data-feather="more-vertical"></i>
+	          <div class="sub-menu menu-below-right">
+	            <div onclick="DevBoxEventController.publishEvent('ToolsGPTClear','',false,true)" id="">Clear Assistant</div>
+	          </div>
+	        </button>
+		</div>
+		<div class="flex-grow" id="tools-gpt-output"></div>
+		<div class="flex-row" id="tools-gpt-input">
+			<textarea id="tools-gpt-input-textbox" placeholder="ask a question" onkeydown="if (event.key === 'Enter' && !event.shiftKey) { DevBoxEventController.publishEvent('ToolsGPTEnter',event,false,true); }"></textarea>
+		</div>
+	</div>
+	
+	>
+	quit ""
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Lib.Exception.VerboseException">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66621,74432.789154</TimeChanged>
+<TimeCreated>66621,68434.122348</TimeCreated>
+
+<Method name="MakeVerboseExceptionAsJsonString">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+    set jsonString=""
+	try {
+		set status={}
+		set status.Error=$zerror
+		set status.Source=##class(Cogs.Lib.Dictionary).GetRoutineCodeForLineLabel($Piece($Piece($zerror,">",2)," "))
+        set status.Stack=[]
+        set status.Objects={}
+        set status.Primatives={}
+		for i=1:1:$stack-1 do status.Stack.%Set(i,$stack(i,"PLACE")_" : "_$zstrip($stack(i, "MCODE"),"<W"))
+		set level=$ZU(41)-2
+		set var=$zu(42,level,"~")
+		while var'="" {
+			set name=$p(var,"~",2)
+			set item=$zu(43,level,var)
+			if $data(item),item'["%Exception.SystemException" {
+				if $IsObject(item) {
+					do ##class(DevBox.Lib.JSON.ObjectSerializer).ToJSON(item,.jsonStream)
+					set object={}.%FromJSON(jsonStream.Read(jsonStream.Size))
+					do status.Objects.%Set(name,object)
+				} else {
+					do status.Primatives.%Set(name,item)
+				}
+			}
+			set var=$zu(42,level,var)
+		}
+		set jsonString=status.%ToJSON()
+	} catch err {
+        write !,"Error: ",err.DisplayString()
+    }
+	quit jsonString
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Lib.JSON.ObjectSerializer">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66607,48553.068937</TimeChanged>
+<TimeCreated>64446,53709.725486</TimeCreated>
+
+<Method name="ToJSON">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[object,stream:%Stream="",&options,&seen]]></FormalSpec>
+<Implementation><![CDATA[
+	do ..serialise(object,.stream,.options,.seen)
+	if $g(options("format"))=1 {
+		set formatter=##class(%JSON.Formatter).%New()
+		do formatter.FormatToStream(##class(%DynamicAbstractObject).%FromJSON(stream.Read(stream.Size)),.stream)
+	}
+]]></Implementation>
+</Method>
+
+<Method name="serialise">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[object,&stream="",&options,&seen=""]]></FormalSpec>
+<Implementation><![CDATA[
+	if stream="" set stream=##class(%Stream.TmpCharacter).%New(),returnStream=1
+	if $g(seen(object))=1 do stream.Write("{}") quit stream
+	set seen(object)=1
+	if $g(options("parent"))'="" do stream.Write("{"""_options("parent")_""":")
+	do stream.Write("{")
+	set sql($i(sql))="select Name, RuntimeType, Type, MultiDimensional, Internal, Private"
+	set sql($i(sql))="from %Dictionary.CompiledProperty"
+	set sql($i(sql))="where parent='"_$CLASSNAME(object)_"' and NOT Name [ '%'"
+	set statement = ##class(%SQL.Statement).%New()
+	set sc=statement.%Prepare(.sql)
+	set rs=statement.%Execute()	
+	set co="",cc=0
+	while rs.%Next()
+	{	
+		if (rs.%Get("Internal")=1)!(rs.%Get("Private")=1) continue	
+		set (name,pname)=rs.%Get("Name")
+		if $data(options("rename",pname)) set pname=options("rename",pname)
+		set runtimeType=rs.%Get("RuntimeType")
+		set type=rs.%Get("Type")
+		if $data(ignore(name)) continue
+		if $e(name)'?1A continue
+		if runtimeType="%Library.RelationshipObject" continue
+		if rs.%Get("MultiDimensional")=1 {
+			set c2=""
+			set key=""
+			set %ref="object."_name
+			set key=$order(@%ref@(key))
+			if (key=""),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":{")
+			while key'=""
+			{
+				try {
+					set value=$property(object,name,key)
+					do stream.Write(c2_""""_key_""""_":")
+					do stream.Write(""""_..EscapeJSON(value)_"""")
+					set c2=","
+				} catch err {
+					
+				}
+				set key=$order(@%ref@(key))
+			}
+			do stream.Write("}")
+			set co=","
+			continue	
+		}
+		
+		if "%Collection.ArrayOfDT"=runtimeType {
+			set c2="",p=$property(object,name),key=$method(p,"Next","")
+			if (key=""),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":{")
+			while key'="" {
+				set value=$method(p,"GetAt",key)
+				do stream.Write(c2_""""_key_""""_":"_$s(value=$c(0):"null",1:..normalize(type,value,0,.seen,.options)))
+				set key=$method(p,"Next",key),c2=","
+			}
+			do stream.Write("}")
+			set co=","
+			continue						
+		}
+		if "%Collection.ArrayOfObj"=runtimeType {
+			set c2="",p=$property(object,name),key=$method(p,"Next","")
+			if (key=""),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":{")
+			while key'="" {
+				set o=$method(p,"GetAt",key)
+				do stream.Write(c2_""""_key_""":")
+				do ..serialise(o,.stream,.options,.seen)
+				set key=$method(p,"Next",key),c2=","
+			}
+			do stream.Write("}")
+			set co=","
+			continue					
+		}
+		if "%Collection.ListOfDT"=runtimeType {
+			set c2="",p=$property(object,name)
+			set size=$method(p,"Count")
+			if (size=0),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":[")
+			for i=1:1:size {
+				set value=$method(p,"GetAt",i)
+				do stream.Write(c2_$s(value=$c(0):"null",1:..normalize(type,value,0,.seen,.options)))
+				set c2=","
+			}
+			do stream.Write("]")
+			set co=","
+			continue					
+		}
+		if "%Collection.ListOfObj"=runtimeType {
+			set c2="",p=$property(object,name)
+			set size=$method(p,"Count")
+			if (size=0),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":[")
+			for i=1:1:size {
+				set obj=$method(p,"GetAt",i)
+				do stream.Write(c2)
+				do ..serialise(obj,.stream,.options,.seen)
+				set c2=","
+			}
+			do stream.Write("]")
+			set co=","
+			continue					
+		}
+		if "%Library"=$piece(runtimeType,"."),runtimeType["Stream" {
+			set p=$property(object,name)
+			if (p=""),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":""")
+			do $method(p,"Rewind")
+			if runtimeType["Binary" {
+				while p.AtEnd=0 { do stream.Write($system.Encryption.Base64Encode(p.Read(57))) }
+			} else {
+				while p.AtEnd=0 { do stream.Write(..EscapeJSON(p.Read(1000))) }
+			}
+			do stream.Write("""")
+			set co=","
+			continue
+		}
+		if $IsObject($property(object,name)) {
+			set obj=$property(object,name)
+			if (obj=""),($get(options("skip-empty"))=1) continue
+			do stream.Write(co_""""_pname_""":")
+			do ..serialise(obj,.stream,.options,.seen)
+			set co=","
+			continue
+		}
+		set value=$property(object,name)
+		if (value=""),($get(options("skip-empty"))=1) continue
+		do stream.Write(co_""""_pname_""":")
+		set value=$select(value=$c(0):"null",1:..normalize(type,value,2,.options,.stream))
+		do stream.Write(value)
+		set co=","
+	}
+	do stream.Write("}")
+	if $g(options("parent"))'="" do stream.Write("}")
+	kill seen(object)
+	quit $select($get(returnStream)=1:stream,1:"")
+]]></Implementation>
+</Method>
+
+<Method name="normalize">
+<Internal>1</Internal>
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[type,value,mode=0,&seen,&options,&stream]]></FormalSpec>
+<Implementation><![CDATA[
+	if "Cogs.Lib.Types.Json"=type q $Select(value'="":value,1:"""""")
+	if "%Library.Time"=type q $s(value'="":""""_$zt(value)_"""",1:"null")
+	if "%Library.Date"=type q $s(value'="":""""_$zd(value,3)_"""",1:"null")
+	if "%Library.TimeStamp"=type q $s(value'="":""""_$tr(value," ","T")_"Z""",1:"null")	
+	if "%Library.Boolean"=type q $s(value=1:"true",value=0:"false",1:"null")
+	if "%Library.Float %Library.Integer %Library.Numeric %Library.Currency"[type q $s($e(value,1,2)="0.":value,$e(value,1)=".":"0"_value,value'="":+value,1:"null")
+	if "%"=$e(type) q """"_..EscapeJSON(value)_""""
+	quit $s($IsObject(value):..serialise(value,.stream,.options,.seen),value="":$C(34,34),1:""""_..EscapeJSON(value)_"""")
+]]></Implementation>
+</Method>
+
+<Method name="EscapeJSON">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>string:%String,escapeSolidus:%Boolean=0</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[	quit $zcvt(string,"O","JSON")
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.OpenAI.Completions">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66624,46147.92516</TimeChanged>
+<TimeCreated>66600,31800.582327</TimeCreated>
+
+<Method name="getCompletion">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pText:%String</FormalSpec>
+<ReturnType>%String</ReturnType>
+<Implementation><![CDATA[
+
+    if pText="help $find" {
+        set findText="JEZJTkQgUmVmZXJlbmNlDQoNClRoZSAkRklORCBmdW5jdGlvbiAob3IgJEYpIGxvY2F0ZXMgYSBzdWJzdHJpbmcgd2l0aGluIGEgc3RyaW5nIGFuZCByZXR1cm5zIHRoZSBwb3NpdGlvbiBvZiB0aGUgZmlyc3QgY2hhcmFjdGVyIGFmdGVyIHRoZSBmb3VuZCBzdWJzdHJpbmcuIEl0J3MgY2FzZS1zZW5zaXRpdmUgYW5kIGNvdW50cyBjaGFyYWN0ZXJzLCBub3QgYnl0ZXMsIGFsbG93aW5nIGZvciB1c2Ugd2l0aCA4LWJpdCBvciAxNi1iaXQgKFVuaWNvZGUpIGNoYXJhY3RlcnMuDQoNClN5bnRheDogDQpgYGANCiRGSU5EKHN0cmluZywgc3Vic3RyaW5nLCBbcG9zaXRpb25dKQ0KYGBgDQoqIHN0cmluZzogVGhlIHN0cmluZyB0byBiZSBzZWFyY2hlZA0KKiBzdWJzdHJpbmc6IFRoZSBzdWJzdHJpbmcgdG8gZmluZA0KKiBwb3NpdGlvbjogVGhlIHN0YXJ0IHBvc2l0aW9uIGZvciB0aGUgc2VhcmNoIChvcHRpb25hbCkNCg0KLSBJZiB0aGUgc3Vic3RyaW5nIGlzIGZvdW5kLCAkRklORCByZXR1cm5zIHRoZSBwb3NpdGlvbiBvZiB0aGUgZmlyc3QgY2hhcmFjdGVyIGFmdGVyIHRoZSBzdWJzdHJpbmcuIElmIG5vdCBmb3VuZCwgaXQgcmV0dXJucyAwLg0KLSBXaGVuIHRoZSBzdWJzdHJpbmcgaXMgYSBzaW5nbGUgY2hhcmFjdGVyIG1hdGNoaW5nIHRoZSBmaXJzdCBjaGFyYWN0ZXIgb2YgdGhlIHN0cmluZywgJEZJTkQgcmV0dXJucyAyLg0KLSBXaGVuIHRoZSBzdWJzdHJpbmcgaXMgYSBudWxsIHN0cmluZyAoIiIpLCAkRklORCByZXR1cm5zIDEuDQotIElmIHRoZSBvcHRpb25hbCBwb3NpdGlvbiBpcyBncmVhdGVyIHRoYW4gdGhlIHN0cmluZydzIGxlbmd0aCwgJEZJTkQgcmV0dXJucyAwLg0KYGBgDQpTRVQgdmFyMT0iQUJDREVGRyIsdmFyMj0iQkNEIg0KV1JJVEUgJEZJTkQodmFyMSx2YXIyKSAvLyBSZXR1cm5zIDUNCg0KU0VUIFg9IkZPUkVTVCINCldSSVRFICRGSU5EKFgsIkZPUiIpIC8vIFJldHVybnMgNA0KDQpXUklURSAkRklORCgiYWFyZHZhcmsiLCJ6IikgLy8gUmV0dXJucyAwDQpXUklURSAkRklORCgiYWFyZHZhcmsiLCIiKSAvLyBSZXR1cm5zIDENCldSSVRFICRGSU5EKCJhYXJkdmFyayIsImEiKSAvLyBSZXR1cm5zIDINCg0KV1JJVEUgJEZJTkQoIiIsInoiKSAvLyBSZXR1cm5zIDANCldSSVRFICRGSU5EKCIiLCIiKSAvLyBSZXR1cm5zIDENCg0KU0VUIFg9IkVWRVJHUkVFTiBGT1JFU1QiLFk9IlIiDQpXUklURSAkRklORChYLFksNykgLy8gUmV0dXJucyAxNA0KDQpTRVQgWD0iRVZFUkdSRUVOIEZPUkVTVCIsWT0iUiINCldSSVRFICRGSU5EKFgsWSwyMCkgLy8gUmV0dXJucyAwDQpgYGA"
+        return ##class(%SYSTEM.Encryption).Base64Decode(findText)
+    }
+
+    set httpRequest = ##class(%Net.HttpRequest).%New()
+    set httpRequest.Server = "api.openai.com"
+    set httpRequest.Port = 443
+    set httpRequest.Https = 1
+    set httpRequest.Timeout = 90
+    set httpRequest.SSLConfiguration = "OpenAI"
+
+    do httpRequest.SetHeader("Content-Type", "application/json")
+    do httpRequest.SetHeader("Authorization", "Bearer "_^openai("api-key"))
+
+    set requestBody = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": (pText)}],
+        "temperature": 0
+    }
+    do httpRequest.EntityBody.Write(requestBody.%ToJSON())
+
+    set sc = httpRequest.Post("/v1/chat/completions")
+
+    if $$$ISERR(sc) return "Post failed with error: "_$SYSTEM.Status.GetOneErrorText(sc)
+
+    set response = httpRequest.HttpResponse
+
+    if response.StatusCode = 200 {
+        set responseJSON = ##class(%DynamicObject).%FromJSON(response.Data)
+        set ^lastResponse = responseJSON
+        set content=responseJSON.choices.%Get(0).message.content
+        return ..PostFilter(content)
+    } else {
+        return "Request failed with status code: " _response.StatusCode
+    }
+]]></Implementation>
+</Method>
+
+<Method name="PostFilter">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>content</FormalSpec>
+<Implementation><![CDATA[
+    if content["$sqrt" set content=$replace(content,"$sqrt","$zsqr")
+    return content
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Pages.ViewCspWatchPage">
+<Super>%CSP.Page</Super>
+<TimeChanged>66660,18225.074202</TimeChanged>
+<TimeCreated>66624,65963.619354</TimeCreated>
+
+<Method name="OnPage">
+<ClassMethod>1</ClassMethod>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+    &html<
+        <html>
+        <head>
+            <title>Watch Page</title>
+        </head>
+
+        <body>
+        
+        </body>
+
+        <script>
+
+
+        (() => { 
+
+            // 1. Extract the value of page
+            let url = new URL(window.location.href);
+            let page = url.searchParams.get('urlToPage');
+
+            // 2. Create an iframe that fits the screen.
+            let iframe = document.createElement('iframe');
+            iframe.style.position = 'absolute';
+            iframe.style.top = '0';
+            iframe.style.left = '0';
+            iframe.style.width = '100%';
+            iframe.style.height = '100%';
+            iframe.style.border = '0';
+
+            // 3. Attach the iframe to body
+            document.body.appendChild(iframe);
+
+            // 4. Point the iframe to the page url
+            iframe.src = page;
+
+            // 5. Now watch localStorage for a value change
+            window.addEventListener('storage', function(event) {
+                
+
+                if (event.key == 'cspWatchPage') {
+                    
+                    // 6. When the value changes, reload the iframe to the same page
+                    iframe.contentWindow.location.reload();
+
+                    // 7. Fix the title of the page
+                    document.title = 'Watching: ' + iframe.contentWindow.document.title;
+                }
+            });
+
+            window.setTimeout( () => {
+                document.title = 'Watching: ' + iframe.contentWindow.document.title;
+            },250)
+
+        })();
+
+        </script>
+
+        </html>
+    >
+    quit $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Util.DevBoxBuild">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66660,31731.245233</TimeChanged>
+<TimeCreated>66660,31242.383014</TimeCreated>
+
+<Method name="Build">
+<Description>
+Build method specific to Seans environment</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    write $system.OBJ.Export("DevBox*.CLS","E:\Projects\DevBox\build\DevBox.xml")
+    set status = $zf(-1, "powershell Compress-Archive -Path E:\Projects\DevBox\src\web\* -DestinationPath E:\Projects\DevBox\build\DevBoxWebFiles.zip")
+]]></Implementation>
+</Method>
+</Class>
+
+
+<Class name="DevBox.Util.DevBoxInstaller">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66660,31193.112994</TimeChanged>
+<TimeCreated>66659,42958.549029</TimeCreated>
+
+<Method name="Install">
+<Description>
+Configures the DevBox and DevBoxApi applications</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pathToCspFiles</FormalSpec>
+<Implementation><![CDATA[
+
+    // validate the path to csp files
+    if pathToCspFiles="" write !,"ERROR: Path to CSP files is required, quiting installation" quit
+    set checkFile=##class(%File).NormalizeFilename("main.js",pathToCspFiles)
+    if checkFile="" write !,"ERROR: Invalid path location, quiting installation" quit
+    set checkFileExists=##class(%File).Exists(checkFile)
+    if checkFileExists=0 write !,"ERROR: Invalid path location, quiting installation" quit
+
+    // uninstall any previous installations
+    do ..Uninstall()
+
+    // install the DevBox application
+    set sc=..InstallDevBoxApplication($namespace,path)
+    if $$$ISERR(sc) write !,"Unable to create DevBox application. Reason: ",$SYSTEM.Status.GetOneErrorText(sc)," , quiting installation" quit
+    write !,"DevBox Application installed correctly"
+
+    // install the DevBoxApi application
+    set sc=..InstallDevBoxApi($namespace)
+    if $$$ISERR(sc) write !,"Unable to create DevBox API application. Reason: ",$SYSTEM.Status.GetOneErrorText(sc)," , quiting installation" quit
+    write !,"DevBox API Application installed correctly"
+
+    // installation is complete, output a link to the main index class
+    write !,"Installation complete"
+    write !!,"Navigate to http://host:port/devbox/DevBox.Index.cls to launch DevBox"
+]]></Implementation>
+</Method>
+
+<Method name="Uninstall">
+<Description>
+Removes the DevBox and DevBoxApi applications</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set sc=##class(Security.Applications).Delete("/devbox")
+    set sc=##class(Security.Applications).Delete("/devboxapi")
+]]></Implementation>
+</Method>
+
+<Method name="InstallDevBoxApplication">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>namespace,path</FormalSpec>
+<Implementation><![CDATA[
+    if ##class(Security.Applications).Exists("/devbox")=0 {
+        kill params
+        set params("NameSpace")=namespace
+        set params("DispatchClass")=""
+        set params("Path")=path
+        set sc=##class(Security.Applications).Create("/devbox",.params)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="InstallDevBoxApi">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>namespace</FormalSpec>
+<Implementation><![CDATA[
+    if ##class(Security.Applications).Exists("/devboxapi")=0 {
+        kill params
+        set params("NameSpace")=namespace        
+        set params("DispatchClass")="DevBox.API.Main"
+        set sc=##class(Security.Applications).Create("/devboxapi",.params)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="GetPathForNamespace">
+<Description>
+Returns the physical path location of CSP files for a namespaces
+default install location. Returns "" if not found.</Description>
+<ClassMethod>1</ClassMethod>
+<FormalSpec>namespace</FormalSpec>
+<Implementation><![CDATA[
+    set path=""
+    set thisNamespace=$namespace
+    zn "%SYS"
+    &sql(select Path into :path
+         from Security.Applications
+         where Namespace=:namespace
+         and IsNameSpaceDefault=1)
+    zn thisNamespace
+    return path
+]]></Implementation>
+</Method>
+</Class>
+</Export>

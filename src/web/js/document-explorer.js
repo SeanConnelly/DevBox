@@ -15,6 +15,13 @@ export class DocumentExplorer {
     bindExplorerTreeEvents() {
         EventController.bindInnerTextToEvent('namespace', 'Model.NameSpace');
         this.codeTreeEl = document.getElementById('explorer-tree');
+        this.codeTreeEl.addEventListener('click', (ev) => {
+            console.log(ev);
+            if (ev.target.classList.contains('feather-chevron-down')
+                || ev.target.classList.contains('feather-chevron-right')
+                || ev.target.parentElement.classList.contains('feather-chevron-right')
+                || ev.target.parentElement.classList.contains('feather-chevron-right')) this.onUserInteractsWithTreeItem(ev);
+        });
         this.codeTreeEl.addEventListener('dblclick', ev => this.onUserInteractsWithTreeItem(ev));
         this.codeTreeEl.addEventListener('touchstart', ev => this.onUserInteractsWithTreeItem(ev));
         this.codeTreeEl.addEventListener('contextmenu', ev => this.showUserExplorerTreeContextMenu(ev));
@@ -26,7 +33,10 @@ export class DocumentExplorer {
         let group = ev.target.closest('[data-group]').dataset.group;
         let el = ev.target.closest('[data-name]');
         let name = el.dataset.name;
-        if (name === undefined) return;
+        if (name === undefined) {
+            console.log('no name found');
+            return;
+        }
         if (el.classList.contains('explorer-tree-node') && (group === 'Classes')) {
             menu.innerHTML = `<div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('FindInPackageByName','${name}',false,true);">
                                 <div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-small feather-search grey"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>

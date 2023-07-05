@@ -708,7 +708,7 @@ export class DocumentManager {
         let docName = this.getTabLayoutInFocus().getTabItemInFocus().doc.name;
         let namespace = EventController.get('Model.NameSpace');
         System.GetNameSpaceDefaultUrlPath(namespace).then( (url) => {
-            let fullURL = 'DevBox.IDE.ViewCspWatchPage.cls?urlToPage=' + url + '/' + docName;
+            let fullURL = 'DevBox.Pages.ViewCspWatchPage.cls?urlToPage=' + url + '/' + docName;
             //encode url
             fullURL = encodeURI(fullURL);
             window.open(fullURL, '_blank').focus();
