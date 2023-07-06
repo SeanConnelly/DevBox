@@ -4,7 +4,7 @@
 
 Introducing DevBox, the evolution of the prototype IDE previously called CloudStudio. This new version represents a substantial refactor, packed with an array of innovative features currently in alpha.
 
-![Drag Racing](/docs/readme/screen-shot.png)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/3pao-TwPHkc/0.jpg)](https://www.youtube.com/watch?v=3pao-TwPHkc)
 
 Features of DevBox include:
 
