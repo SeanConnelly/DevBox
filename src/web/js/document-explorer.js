@@ -15,12 +15,12 @@ export class DocumentExplorer {
     bindExplorerTreeEvents() {
         EventController.bindInnerTextToEvent('namespace', 'Model.NameSpace');
         this.codeTreeEl = document.getElementById('explorer-tree');
+        //handle single clicks on the tree arrows only
         this.codeTreeEl.addEventListener('click', (ev) => {
-            console.log(ev);
-            if (ev.target.classList.contains('feather-chevron-down')
-                || ev.target.classList.contains('feather-chevron-right')
-                || ev.target.parentElement.classList.contains('feather-chevron-right')
-                || ev.target.parentElement.classList.contains('feather-chevron-right')) this.onUserInteractsWithTreeItem(ev);
+            let el = ev.target;
+            //if element is not svg, find the closest svg
+            if (el.tagName !== 'svg') el = ev.target.closest('svg');
+            if (el.classList.contains('feather-chevron-down') || el.classList.contains('feather-chevron-right')) this.onUserInteractsWithTreeItem(ev);
         });
         this.codeTreeEl.addEventListener('dblclick', ev => this.onUserInteractsWithTreeItem(ev));
         this.codeTreeEl.addEventListener('touchstart', ev => this.onUserInteractsWithTreeItem(ev));
