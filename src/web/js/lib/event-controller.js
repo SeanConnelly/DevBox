@@ -104,7 +104,7 @@ export class EventController {
     static multiItemEventContains(key, value) {
         if (!EventController.exists(key)) return false;
         let values = JSON.stringify(EventController.data[key]);
-        return values.includes(value);
+        return values.includes('"' + value + '"');
     }
 
     // ====================================================================================================
