@@ -88,7 +88,7 @@ html,body {
 
 .status-window {
     position: absolute;
-    right: 444px;
+    right: 0;
     left: 222px;
     bottom: 0;
     height: 22px;
