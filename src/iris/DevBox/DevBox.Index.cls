@@ -117,11 +117,10 @@ ClassMethod InitialiseAppData()
 	set thisNamespace=$NAMESPACE
 	zn "%SYS"
 	set user=##class(Security.Users).%OpenId($USERNAME)
-	set defaultNamespace=user.NameSpace
-	if defaultNamespace="" set defaultNamespace=thisNamespace
+	if $isobject(user) set defaultNamespace=user.NameSpace
+	if $get(defaultNamespace)="" set defaultNamespace=thisNamespace
 	zn thisNamespace
 	write !,"CloudStudioAppDefault.NS='",defaultNamespace,"';"
-	
 	quit ""
 }
 

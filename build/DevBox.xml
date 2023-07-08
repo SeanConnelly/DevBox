@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-08 10:06:13">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-08 12:09:48">
 <Class name="DevBox.API.Main">
 <Super>%CSP.REST</Super>
 <TimeChanged>66656,78690.127286</TimeChanged>
@@ -296,7 +296,7 @@ Rename Class</Description>
 
 <Class name="DevBox.Index">
 <Super>%CSP.Page</Super>
-<TimeChanged>66660,18157.49586</TimeChanged>
+<TimeChanged>66663,43722.685093</TimeChanged>
 <TimeCreated>66470,33492.553722</TimeCreated>
 
 <Method name="OnPage">
@@ -421,11 +421,10 @@ TODO: Quick hack, move into an API</Description>
 	set thisNamespace=$NAMESPACE
 	zn "%SYS"
 	set user=##class(Security.Users).%OpenId($USERNAME)
-	set defaultNamespace=user.NameSpace
-	if defaultNamespace="" set defaultNamespace=thisNamespace
+	if $isobject(user) set defaultNamespace=user.NameSpace
+	if $get(defaultNamespace)="" set defaultNamespace=thisNamespace
 	zn thisNamespace
 	write !,"CloudStudioAppDefault.NS='",defaultNamespace,"';"
-	
 	quit ""
 ]]></Implementation>
 </Method>

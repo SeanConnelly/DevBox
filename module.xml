@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Export generator="Cache"
+        version="25">
+	<Document name="devbox.ZPM">
+		<Module>
+			<Name>devbox</Name>
+			<Version>0.0.1</Version>
+			<Description>A code anywhere IDE for IRIS</Description>
+			<Keywords>IDE Editor Tool</Keywords>
+			<Packaging>module</Packaging>
+			<Resource Name="DevBox.PKG"/>
+			<CSPApplication CookiePath="/devbox/"
+			                DefaultTimeout="900"
+			                DeployPath="${cspdir}DevBox\src\web\"
+			                Description="DevBox IDE Application"
+			                PasswordAuthEnabled="1"
+			                Recurse="1"
+			                ServeFiles="1"
+			                ServeFilesTimeout="3600"
+			                SourcePath="/src/web/"
+			                UnauthenticatedEnabled="0"
+			                Url="/devbox"
+			                UseSessionCookie="2"/>
+			<CSPApplication CookiePath="/devboxapi/"
+			                DefaultTimeout="900"
+			                Description="DevBox REST API"
+			                DispatchClass="DevBox.API.Main"
+			                PasswordAuthEnabled="1"
+			                Recurse="1"
+			                ServeFiles="1"
+			                ServeFilesTimeout="3600"
+			                UnauthenticatedEnabled="0"
+			                Url="/devboxapi"
+			                UseSessionCookie="2"/>
+			<SourcesRoot>src\iris\</SourcesRoot>
+		</Module>
+	</Document>
+</Export>

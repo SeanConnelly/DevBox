@@ -20,7 +20,7 @@ export class DocumentExplorer {
             let el = ev.target;
             //if element is not svg, find the closest svg
             if (el.tagName !== 'svg') el = ev.target.closest('svg');
-            console.log(el)
+            if ((el === null) || (el.tagName !== 'svg')) return;
             if (el.classList.contains('feather-chevron-down') || el.classList.contains('feather-chevron-right')) this.onUserInteractsWithTreeItem(ev);
         });
         this.codeTreeEl.addEventListener('dblclick', ev => this.onUserInteractsWithTreeItem(ev));
