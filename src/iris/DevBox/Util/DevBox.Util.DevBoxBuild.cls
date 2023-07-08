@@ -3,6 +3,7 @@ Class DevBox.Util.DevBoxBuild Extends %RegisteredObject
 
 Parameter ROOT = "E:\Projects\DevBox\src\iris\";
 
+/// do ##class(DevBox.Util.DevBoxBuild).Build()
 /// Build method specific to Seans environment
 ClassMethod Build()
 {

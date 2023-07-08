@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-05 21:26:51">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-08 10:06:13">
 <Class name="DevBox.API.Main">
 <Super>%CSP.REST</Super>
 <TimeChanged>66656,78690.127286</TimeChanged>
@@ -1006,10 +1006,17 @@ TODO: Quick hack, move into an API</Description>
 
 <Class name="DevBox.OpenAI.Completions">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66624,46147.92516</TimeChanged>
+<TimeChanged>66661,61838.489528</TimeChanged>
 <TimeCreated>66600,31800.582327</TimeCreated>
 
 <Method name="getCompletion">
+<Description>
+This method retrieves completion for a given text.
+If the text is "help $find", it returns a base64 encoded string.
+Otherwise, it sends an HTTP request to the OpenAI API.
+The request includes the text, model, and temperature.
+If the request is successful, it returns the completed content.
+If the request fails, it returns an error message.</Description>
 <ClassMethod>1</ClassMethod>
 <FormalSpec>pText:%String</FormalSpec>
 <ReturnType>%String</ReturnType>
@@ -1140,16 +1147,49 @@ TODO: Quick hack, move into an API</Description>
 
 <Class name="DevBox.Util.DevBoxBuild">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66660,31731.245233</TimeChanged>
+<TimeChanged>66663,36326.359929</TimeChanged>
 <TimeCreated>66660,31242.383014</TimeCreated>
+
+<Parameter name="ROOT">
+<Default>E:\Projects\DevBox\src\iris\</Default>
+</Parameter>
 
 <Method name="Build">
 <Description>
+do ##class(DevBox.Util.DevBoxBuild).Build()
 Build method specific to Seans environment</Description>
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
     write $system.OBJ.Export("DevBox*.CLS","E:\Projects\DevBox\build\DevBox.xml")
     set status = $zf(-1, "powershell Compress-Archive -Path E:\Projects\DevBox\src\web\* -DestinationPath E:\Projects\DevBox\build\DevBoxWebFiles.zip")
+]]></Implementation>
+</Method>
+
+<Method name="Export">
+<Description>
+do ##class(DevBox.Util.DevBoxBuild).Export()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    set statement=##class(%SQL.Statement).%New()
+    set sc=statement.%Prepare("SELECT Name FROM %Dictionary.CompiledClass WHERE ID LIKE 'DevBox%'") 
+    if $$$ISERR(sc) write !,$SYSTEM.Status.GetOneErrorText(sc) quit
+    set rs=statement.%Execute()
+    while rs.%Next() {
+        set name=rs.%Get("Name")
+        set sc=..ExportClass(name,..#ROOT)
+    }
+]]></Implementation>
+</Method>
+
+<Method name="ExportClass">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pClassName:%String,pRootFolder:%String</FormalSpec>
+<Implementation><![CDATA[
+	set del=$s($zv["Windows":"\",1:"/")
+	set fileFolder=pRootFolder_del_$tr($p(pClassName,".",1,$l(pClassName,".")-1),".",del)_del
+	set fileName=fileFolder_pClassName_".cls"
+	set sc=##class(%File).CreateDirectoryChain(fileFolder)
+	quit ##class(%Compiler.UDL.TextServices).GetTextAsFile(,pClassName,fileName)
 ]]></Implementation>
 </Method>
 </Class>
