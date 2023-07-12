@@ -26,6 +26,14 @@ Our secondary objective is to optimize DevBox for fast-paced development, contin
 
 We also have immediate plans to introduce a secondary "connection manager" project, designed to simplify the process of installing and managing DevBox across a multitude of servers.
 
+## ZPM Installation Instructions
+
+Install DevBox via ZPM using
+
+```
+zpm devbox
+```
+
 ## Manual Installation Instructions
 
 Step 1 - Download the DevBox installation files to your IRIS server
