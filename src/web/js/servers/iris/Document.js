@@ -53,20 +53,6 @@ export class Document {
         })
     }
 
-    copyDocument() {
-        return fetch(`/devboxapi/action/copy-document`,{
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({name:this.name})
-        })
-            .then((response) => response.text())
-            .catch( (error) => error)
-    }
-
-    renameDocument() {
-
-    }
-
     keep() {
 
     }

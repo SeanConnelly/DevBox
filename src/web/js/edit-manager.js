@@ -374,20 +374,6 @@ export class EditManager {
             .catch( err => EventController.publishEvent('Message.Console',err,false) );
     }
 
-    copyDocument() {
-        this.doc.copyDocument().then( res => {
-            EventController.publishEvent('Message.Console',{
-                title: 'copy document',
-                state: 'info',
-                text: res
-            },false);
-        })
-    }
-
-    renameDocument() {
-
-    }
-
     updateOptions(options) {
         this.editor.updateOptions(options)
     }

@@ -1,6 +1,7 @@
 import {EventController} from './lib/event-controller.js';
 import {CompletionItemDictionary} from './servers/iris/CompletionItemDictionary.js';
 import {Document} from './servers/iris/Document.js'
+import {Icons} from "./ui/icons.js";
 
 const $div = (...cl) => { let div = document.createElement('div'); if (cl) div.classList.add(...cl); return div}
 
@@ -40,8 +41,7 @@ export class DocumentExplorer {
         }
         if (el.classList.contains('explorer-tree-node') && (group === 'Classes')) {
             menu.innerHTML = `<div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('FindInPackageByName','${name}',false,true);">
-                                <div><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather-small feather-search grey"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg></div>
-                                <div class="flex-1 pad-left-sm pad-right-1em">Find in Package '${name}'</div>
+                                <div>${Icons.get('search')}</div><div class="flex-1 pad-left-sm pad-right-1em">Find in Package '${name}'</div>
                               </div>
                               <div class="menu-divide"></div>
                               <div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('CompilePackageByName','${name}',false,true);">
@@ -54,14 +54,23 @@ export class DocumentExplorer {
                               </div>`
         }
         if (el.classList.contains('explorer-tree-leaf') && (group === 'Classes')) {
-            menu.innerHTML = `<div onclick="DevBoxEventController.publishMultiItemEvent('Model.DocumentsOpenForEdit','${name}',true,true)" id="">Open Class '${name}'</div>
+            menu.innerHTML = `<div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishMultiItemEvent('Model.DocumentsOpenForEdit','${name}',true,true)" id="">
+                                <div>${Icons.get('book-open')}</div><div class="flex-1 pad-left-sm pad-right-1em">Open Class '${name}'</div>
+                              </div>
                               <div class="menu-divide"></div>
-                              <div onclick="DevBoxEventController.publishEvent('CompileClassByName','${name}',false,true)" id="">Compile Class '${name}'</div>
-                              <div onclick="DevBoxEventController.publishEvent('ExportClassByName','${name}',false,true)" id="">Export Class '${name}'</div>`
-                              //TODO: built prompt box, enable these and fetch the new name, server side is done
-                              //<div class="menu-divide"></div>
-                              //<div onclick="DevBoxEventController.publishEvent('CopyClassByName','${name}',false,true)" id="">Copy Class '${name}'</div>
-                              //<div onclick="DevBoxEventController.publishEvent('RenameClassByName','${name}',false,true)" id="">Rename Class '${name}'</div>`
+                              <div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('CompileClassByName','${name}',false,true)" id="">
+                                <div>${Icons.get('cpu')}</div><div class="flex-1 pad-left-sm pad-right-1em">Compile Class '${name}'</div>
+                              </div>
+                              <div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('ExportClassByName','${name}',false,true)" id="">
+                                <div>${Icons.get('download')}</div><div class="flex-1 pad-left-sm pad-right-1em">Export Class '${name}'</div>
+                              </div>
+                              <div class="menu-divide"></div>
+                              <div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('CopyClass','${name}',false,true)" id="">
+                                <div>${Icons.get('copy')}</div><div class="flex-1 pad-left-sm pad-right-1em">Copy Class '${name}'</div>
+                              </div>
+                              <div class="flex-row flex-center-items h24" onclick="DevBoxEventController.publishEvent('RenameClass','${name}',false,true)" id="">
+                                <div>${Icons.get('edit-2')}</div><div class="flex-1 pad-left-sm pad-right-1em">Rename Class '${name}'</div>
+                              </div>`
         }
         if (el.classList.contains('explorer-tree-node') && (group === 'Routines')) {
             menu.innerHTML = `<div onclick="DevBoxEventController.publishEvent('FindInRoutinePackageByName','${name}',false,true);" id="">Find in Package '${name}</div>

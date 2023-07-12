@@ -4,7 +4,7 @@ import {Document} from "./servers/iris/Document.js";
 import {EventController} from "./lib/event-controller.js";
 import {EditManager} from "./edit-manager.js";
 import {DialogBox} from "./ui/dialog.js"
-import {CodeTemplates} from "./servers/iris/CodeTemplates.js";
+import {DocumentTemplates} from "./servers/iris/document-templates.js";
 import {System} from "./servers/iris/System.js";
 
 //TODO: Split this class into smaller classes, in particular move UI widgets to ui folder
@@ -101,7 +101,7 @@ export class DocumentManager {
 
     makeNewDocument(docNameType) {
         let fullDocName = docNameType.name + '.' + docNameType.type.toLowerCase();
-        let src = CodeTemplates.GetTemplate(docNameType.docType,docNameType.name);
+        let src = DocumentTemplates.GetTemplate(docNameType.docType,docNameType.name);
         let doc = new Document(EventController.get('Model.NameSpace'),fullDocName,src);
         let editor = new EditManager(doc);
         this.addDocumentEditorToTabLayout(this.getTabLayoutInFocus(),fullDocName,editor);
