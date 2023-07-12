@@ -400,6 +400,7 @@ ClassMethod TopMenu() As %Status
 ClassMethod OutputNamespaces()
 {
 	set sc=##class(%SYS.Namespace).ListAll(.nsl)
+	//for i=1:1:50 set nsl("zoo"_i)="" //use to test overflow of very large namespace list
 	set ns=$o(nsl(""))
 	while ns'="" {
 		if $e(ns)'="^" write "<div onclick=""DevBoxEventController.publishEvent('SwapNamespace','"_ns_"',false,true)"" class=""flex-row flex-center-items h24"">"_ns_"</div>"

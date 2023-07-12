@@ -1,4 +1,4 @@
-export class CodeTemplates {
+export class DocumentTemplates {
 
     static GetTemplate(type,name) {
         let tpl = templates[type] || [];

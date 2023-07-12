@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-08 12:18:13">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-12 06:58:49">
 <Class name="DevBox.API.Main">
 <Super>%CSP.REST</Super>
 <TimeChanged>66656,78690.127286</TimeChanged>
@@ -296,7 +296,7 @@ Rename Class</Description>
 
 <Class name="DevBox.Index">
 <Super>%CSP.Page</Super>
-<TimeChanged>66663,43722.685093</TimeChanged>
+<TimeChanged>66667,24928.118598</TimeChanged>
 <TimeCreated>66470,33492.553722</TimeCreated>
 
 <Method name="OnPage">
@@ -709,6 +709,7 @@ TODO: Quick hack, move into an API</Description>
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
 	set sc=##class(%SYS.Namespace).ListAll(.nsl)
+	//for i=1:1:50 set nsl("zoo"_i)="" //use to test overflow of very large namespace list
 	set ns=$o(nsl(""))
 	while ns'="" {
 		if $e(ns)'="^" write "<div onclick=""DevBoxEventController.publishEvent('SwapNamespace','"_ns_"',false,true)"" class=""flex-row flex-center-items h24"">"_ns_"</div>"

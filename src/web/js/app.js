@@ -11,6 +11,7 @@ import {DocumentSearch} from './document-search.js';
 import {} from './servers/iris/Language.js';
 import {} from './servers/iris/CompletionItemProvider.js';
 import {System} from "./servers/iris/System.js";
+import {Document} from "./servers/iris/Document.js";
 
 //TODO: Should this go into its own DOM.js file?
 const $cssVar = (key,val) => document.documentElement.style.setProperty('--' + key, val);
@@ -176,22 +177,27 @@ export class App {
             .catch(error => console.error(error));
     }
 
-    CopyClassByName(namespace,fromClassName,toClassName) {
-        fetch(`/devboxapi/${namespace}/action/copy/class/${fromClassName}/${toClassName}`, {
-            method: 'GET'
-        })
-            .then(response => response.text())
-            .then(data => EventController.publishEvent('Message.Console',data,false))
-            .catch(error => console.error(error));
+    CopyClass(name) {
+        let namespace=this.namespace;
+        console.log('name=',name)
+
+        // fetch(`/devboxapi/${namespace}/action/copy/class/${fromClassName}/${toClassName}`, {
+        //     method: 'GET'
+        // })
+        //     .then(response => response.text())
+        //     .then(data => EventController.publishEvent('Message.Console',data,false))
+        //     .catch(error => console.error(error));
     }
 
-    RenameClassByName(namespace,fromClassName,toClassName) {
-        fetch(`/devboxapi/${namespace}/action/rename/class/${fromClassName}/${toClassName}`, {
-            method: 'GET'
-        })
-            .then(response => response.text())
-            .then(data => EventController.publishEvent('Message.Console',data,false))
-            .catch(error => console.error(error));
+    RenameClass(name) {
+        console.log('name=',name)
+
+        // fetch(`/devboxapi/${namespace}/action/rename/class/${fromClassName}/${toClassName}`, {
+        //     method: 'GET'
+        // })
+        //     .then(response => response.text())
+        //     .then(data => EventController.publishEvent('Message.Console',data,false))
+        //     .catch(error => console.error(error));
     }
 
 }

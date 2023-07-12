@@ -51,8 +51,6 @@ export function appEventRegister(app)  {
     EventController.on('WatchCSPPage', () => app.editManager.WatchCSPPage(prompt));
     EventController.on('GotoCode', (data) => app.editManager.gotoCode(data));
     EventController.on('PreviewCode', (data) => app.editManager.previewCode(data));
-    EventController.on('CopyDocument', (prompt) => app.editManager.copyDocumentInFocus());
-    EventController.on('RenameDocument', (prompt) => app.editManager.renameDocumentInFocus());
     EventController.on('Model.DocumentsOpenForEdit', docName => app.editManager.openDocumentForEdit(docName) );
     EventController.on('Message.EditorDidGetFocus', (ev) => app.editManager.editorDidGetFocus(ev));
     EventController.on('Model.Appearance', themeName => app.editManager.setTheme(themeName));
@@ -86,8 +84,8 @@ export function appEventRegister(app)  {
 
     EventController.on('ImportCodeLocal', (file) => app.ImportCodeLocal(app.namespace,file));
 
-    EventController.on('CopyClassByName', (name) => app.CopyClassByName(name));
-    EventController.on('RenameClassByName', (name) => app.RenameClassByName(name));
+    EventController.on('CopyClass', (name) => app.CopyClass(name));
+    EventController.on('RenameClass', (name) => app.RenameClass(name));
 
     EventController.on('FindInPackageByName', (name) => app.FindInPackageByName(name));
     EventController.on('FindInRoutinePackageByName', (name) => app.FindInRoutinePackageByName(name));

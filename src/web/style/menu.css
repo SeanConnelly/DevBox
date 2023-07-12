@@ -106,6 +106,9 @@ button:hover {
 }
 .menu-aside-more {
     left: 13.8em;
+    max-height: 90vh;
+    overflow-x: hidden;
+    overflow-y: auto;
 }
 .menu-aside::before {
     content: '';
