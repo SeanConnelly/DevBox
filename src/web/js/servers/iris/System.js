@@ -13,11 +13,22 @@ export class System {
         .then( res => res.json())
     }
 
+    static MemoizedGetNameSpaceDefaultUrlPath = {};
+
     static GetNameSpaceDefaultUrlPath(namespace) {
+
+        if (System.MemoizedGetNameSpaceDefaultUrlPath.hasOwnProperty(namespace)) {
+            return Promise.resolve(System.MemoizedGetNameSpaceDefaultUrlPath[namespace]);
+        }
+
         return fetch(`/devboxapi/namespace/${namespace}/defaultUrlPath`,{
             method: 'GET'
         })
-        .then( res => res.text() )
+        .then( res => {
+            let url = res.text();
+            System.MemoizedGetNameSpaceDefaultUrlPath[namespace] = url;
+            return url;
+        })
     }
 
     static compileArrayOfItems(namespace,items,flags) {
