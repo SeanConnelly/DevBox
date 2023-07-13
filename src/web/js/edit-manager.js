@@ -1,5 +1,7 @@
 import {EventController} from "./lib/event-controller.js";
 import {Document} from "./servers/iris/Document.js";
+import {App} from "./app.js";
+import {System} from "./servers/iris/System.js";
 
 const $div = (...cl) => { let div = document.createElement('div'); if (cl) div.classList.add(...cl); return div}
 
@@ -202,15 +204,20 @@ export class EditManager {
     }
 
     createDTLEditor(doc) {
-        let nameParts=doc.name.split('.')
-        nameParts.pop();
-        nameParts.push('dtl');
-        let name=nameParts.join('.');
-        this.el.innerHTML=`
-            <iframe style="width:100%;height:100%;overflow:hidden;" src="EnsPortal.DTLEditor.zen?DT=${name}&STUDIO=1"></iframe>
-        `
-        //this.el.children[0].style.zoom = '0.75';
-        window.setTimeout( () => { this.enhanceDTLEditorStyle(); },1000)
+        System.GetNameSpaceDefaultUrlPath(App.app.namespace).then( (url) => {
+            //if last char of url is not a slash, then add one
+            if (url.charAt(url.length-1) !== '/') url+='/';
+            let nameParts=doc.name.split('.')
+            nameParts.pop();
+            nameParts.push('dtl');
+            let name=nameParts.join('.');
+            let cookies = document.cookie;
+            let iframe = `<iframe style="width:100%;height:100%;overflow:hidden;" src="${url}EnsPortal.DTLEditor.zen?DT=${name}&STUDIO=1&${cookies}"></iframe>`
+            console.log(iframe);
+            this.el.innerHTML = iframe;
+            //this.el.children[0].style.zoom = '0.75';
+            window.setTimeout( () => { this.enhanceDTLEditorStyle(); },1000)
+        });
     }
 
     enhanceDTLEditorStyle() {
