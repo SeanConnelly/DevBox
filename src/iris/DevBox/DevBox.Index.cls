@@ -15,7 +15,7 @@ ClassMethod OnPage() As %Status [ ServerOnly = 1 ]
 
 		<link rel="stylesheet" data-name="vs/editor/editor.main" href="./lib/vs/editor/editor.main.css" />
 		
-		<link rel="icon" href="favicon.png">
+		<link rel="icon" href="favicon-x.png">
 
 	    <link rel="stylesheet" href="./style/reset.css">
 	    <link rel="stylesheet" href="./style/vars.css">
@@ -55,7 +55,7 @@ ClassMethod OnPage() As %Status [ ServerOnly = 1 ]
 			<!-- status bar -->
 			<div class="status-bar flex-row" id="statusBar">
 				<div class="flex-1 flex-row status-bar-tabs">
-					<button onclick="DevBoxEventController.publishEvent('StatusWindow','output',false,true)" class="status-bar-button">Output</button>
+					<button onclick="DevBoxEventController.publishEvent('StatusWindow','output',false,true)" class="status-bar-button">Console</button>
 				</div>
 				<div class="flex-1 flex-row status-bar-status">
 					<span id="CursorPosition">0:0</span>
@@ -67,8 +67,18 @@ ClassMethod OnPage() As %Status [ ServerOnly = 1 ]
 				</div>
 			</div>
 			
-			<div class="output-window" id="outputWindow">
+			<div class="console-window" id="outputWindow">
+				<div class="console-output" id="consoleOutput">
+				</div>
+				<div class="console-prompt flex-row">
+					<div id="console-namespace" class="console-namespace"></div>
+					<div class="flex-1">
+						<input id="console-input" onkeydown="if ((event.key === 'Enter')||(event.key === 'ArrowUp')||(event.key === 'ArrowDown')) { DevBoxEventController.publishEvent('onConsoleInputKey',event,false,true); }"></input>
+					</div>
+				</div>
+
 			</div>
+
 		
 		</div>
 		
@@ -112,6 +122,7 @@ ClassMethod InitialiseAppData()
 	//user name
 	write !,"CloudStudioAppDefault = {};"
 	write !,"CloudStudioAppDefault.User='",$USERNAME,"';"
+	write !,"CloudStudioAppDefault.Server='",$system,"';"
 	
 	//default namespace
 	set thisNamespace=$NAMESPACE
@@ -411,23 +422,36 @@ ClassMethod OutputNamespaces()
 
 ClassMethod Explorer() As %Status
 {
-	
+	set system=$system
+	set server=$piece(system,":",1)
+	set instance=$piece(system,":",2)
+
 	&html<
 	
 	<div class="explorer flex-col" data-state="open" id="explorerPanel">
 		<div class="explorer-title flex-row flex-center-items">
-	  		<span id="namespace"></span>
+		<div class="pad-right-half-em"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+			<span id="namespace">NAMESPACE</span>
 	  		<button class="flex-right menu-top-button rel" id="file-menu">
 	  		  <i data-feather="more-vertical"></i>
 	          <div class="sub-menu menu-below-right">
+	            <div>Change Namespace...</div>
+				<div class="menu-divide"></div>			  
 	            <div onclick="DevBoxEventController.publishEvent('ExpandAll','',false,true)" id="">Expand All</div>
 	            <div onclick="DevBoxEventController.publishEvent('CollapseAll','',false,true)" id="">Collapse All</div>
 	          </div>
 	        </button>
 		</div>
 		<div class="flex-grow code-tree" id="explorer-tree"></div>
+		<div class="explorer-title flex-row flex-center-items">
+			<div class="pad-right-half-em"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+			<div id="server" class="center"><%=instance%></div>			
+		</div>		
+		<div class="explorer-title-2 flex-row flex-center-items">
+			<div class="pad-right-half-em"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+			<div id="server" class="center"><%=server%></div>			
+		</div>
 	</div>
-	
 	>
 	quit ""
 }

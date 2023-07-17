@@ -6,6 +6,7 @@ import {Tools} from './tools.js';
 import {appEventRegister} from './app-event-register.js';
 import {Store} from './lib/store.js';
 import {DocumentSearch} from './document-search.js';
+import {Console} from './console.js';
 
 //Import Monaco registrations
 import {} from './servers/iris/Language.js';
@@ -40,7 +41,7 @@ export class App {
         EventController.ifKeyDoesNotExistCreateIt('Model.NameSpace',this.namespace,true)
 
         //set app title
-        document.title = "DevBox : " + EventController.get('Model.NameSpace');
+        document.title = EventController.get('Model.NameSpace') + ' : ' + CloudStudioAppDefault.Server.split(':')[1];
 
         //restore state
         EventController.restoreAllStoredEventData();
@@ -53,6 +54,7 @@ export class App {
         this.editManager = new DocumentManager();
         this.topmenu = new TopMenu();  //NB: needed to initialise menu
         this.tools = new Tools();
+        this.console = new Console();
 
         //mounts
         this.editManager.mount(this.editSpaceEl)
@@ -104,7 +106,15 @@ export class App {
 
     registerFunctionKeys() {
         window.onkeydown = e => {
-            if (e.key === 'F2') EventController.publishEvent("Compile");
+            if (e.key === 'F2') {
+                EventController.publishEvent("Compile");
+                e.preventDefault();
+            }
+            if (e.key === 'F4') {
+                EventController.publishEvent("GiveConsoleFocus");
+                e.preventDefault();
+            }
+
         };
     }
 

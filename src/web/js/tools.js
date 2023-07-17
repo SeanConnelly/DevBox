@@ -1,3 +1,5 @@
+import {EventController} from "./lib/event-controller.js";
+import {App} from "./app.js";
 
 const $div = (...cl) => { let div = document.createElement('div'); if (cl) div.classList.add(...cl); return div}
 
@@ -53,17 +55,17 @@ export class Tools {
             },
             body: prompt
         })
-            .then(response => response.text())
-            .then(data => {
-                this.removeTypingAnimation();
-                this.writeToOutput(data);
-                this.promptEl.focus();
-            })
-            .catch(err => {
-                this.removeTypingAnimation();
-                this.writeToOutput('HTTP ERROR: ' + err.toString());
-                this.promptEl.focus();
-            });
+        .then(response => response.text())
+        .then(data => {
+            this.removeTypingAnimation();
+            this.writeToOutput(data);
+            this.promptEl.focus();
+        })
+        .catch(err => {
+            this.removeTypingAnimation();
+            this.writeToOutput('HTTP ERROR: ' + err.toString());
+            this.promptEl.focus();
+        });
     }
 
     writeToOutput(text,isQuestion=false) {

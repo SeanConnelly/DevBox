@@ -94,17 +94,49 @@ html,body {
     height: 22px;
     background-color: var(--appBackgroundOne);
 }
-.output-window {
+.console-window {
     position: absolute;
     right: 0;
     left: 0;
     bottom: 0;
     top: 22px;
     background-color: var(--appBackgroundOne);
-    color: var(--appTextColor);
-    overflow: auto;
+    color: var(--appTextColorOne);
     padding: 1em;
     user-select: text;
+    font-family: Consolas, "Courier New", monospace;
+    font-weight: normal;
+    font-size: 14px;
+}
+.console-output {
+    position: absolute;
+    right: 0;
+    left: 0;
+    bottom: 29px;
+    top: 0;
+    padding: 1em;
+    overflow: auto;
+}
+.console-prompt {
+    position: absolute;
+    right: 0;
+    left: 0;
+    bottom: 7px;
+    height: 22px;
+}
+.console-prompt input {
+    background-color: transparent;
+    border: none;
+    outline: none;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+    caret-color: white;
+    caret-shape: bar;
+}
+.console-prompt input:focus {
+    cursor: none;
 }
 .terminal-window {
     position: absolute;

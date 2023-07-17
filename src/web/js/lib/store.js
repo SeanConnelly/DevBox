@@ -7,11 +7,29 @@ export class Store {
     }
 
     static setItem(key, value) {
+        //if value is an object, convert to string
+        if (typeof value === 'object') value = JSON.stringify(value);
         localStorage.setItem(this.namespace + ':' + key, value);
     }
 
     static getItem(key) {
         return localStorage.getItem(this.namespace + ':' + key);
+    }
+
+    static getItemAsObject(key) {
+        let item = this.getItem(key);
+        if (item) {
+            return JSON.parse(item);
+        }
+        return {};
+    }
+
+    static getItemAsArray(key) {
+        let item = this.getItem(key);
+        if (item) {
+            return JSON.parse(item);
+        }
+        return [];
     }
 
     static removeItem(key) {

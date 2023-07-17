@@ -119,11 +119,7 @@ export class DocumentManager {
                     //console.log('document has changed, prompt user before removing');
                     document.activeElement.blur();
                     window.alert('Save documents before closing');
-                    EventController.publishEvent('Message.Console',{
-                        title: 'close',
-                        state: 'info',
-                        text: 'Unsaved change are preventing closure'
-                    },false);
+                    EventController.publishEvent('Message.Console','Unsaved change are preventing closure',false);
                 } else {
                     tabLayout.deleteTab(docName);
                     EventController.removeMultiItemEvent('Model.DocumentsOpenForEdit',docName);
@@ -458,77 +454,7 @@ export class DocumentManager {
         }
     }
 
-    //TODO: refactor this so that all data arrives as an object with a type
-    //      for each type have a separate formatter class that renders the type to HTML
-    outputToConsole(data) {
-        this.toggleStatusWindow(true);
-        let outputWindow = document.getElementById('outputWindow');
 
-        if (typeof data === 'string') {
-
-            let pre = document.createElement('pre');
-            pre.innerText = data;
-            outputWindow.appendChild(pre);
-
-        } else if (Array.isArray(data)) {
-
-            let html = '<br>';
-            data.forEach( item => {
-                html = html + item + '<br>';
-            })
-            let div = document.createElement('div');
-            div.innerHTML = html
-            outputWindow.appendChild(div)
-
-        } else if (typeof data === 'object') {
-
-            if (data.type === 'search-results') {
-                let html = '<br>';
-                data.results.console.forEach( item => {
-                    html = html + item + '<br>';
-                })
-                let div = document.createElement('div');
-                div.innerHTML = html
-                outputWindow.appendChild(div)
-                div.addEventListener('click', (ev) => {
-                    //TODO: make results clickable, selecting result will open the file and highlight the result
-                    console.log('clicked on search result');
-                })
-            }
-
-            if (data.text !== undefined) {
-                let pre = document.createElement('pre');
-                pre.innerText = data.text;
-                outputWindow.appendChild(pre)
-            }
-
-            if (data.html !== undefined) {
-                let div = document.createElement('div');
-                div.innerHTML = data.html;
-                outputWindow.appendChild(div)
-            }
-
-            //display a DTL result: TODO, make this a callback function, or move into a formatter class
-            if (data.dtlResult !== undefined) {
-                let table = document.createElement('table')
-                table.appendChild(data.dtlResult);
-                outputWindow.appendChild(table);
-                //add event listener to DTL results in output window
-                table.addEventListener('click', (ev) => {
-                    let path = ev.target.closest('tr[class="EDIDocumentTableRow"]').querySelector('td[class="EDIDocumentTableSegname"]').firstChild.title + ' : ' + ev.target.title + ' = ' + ev.target.innerText;
-                    EventController.publishEvent('Message.Console',{
-                        title: 'save',
-                        state: 'info',
-                        text: path
-                    },false);
-                    ev.preventDefault();
-                })
-            }
-
-        }
-
-        outputWindow.scrollTop = outputWindow.scrollHeight
-    }
 
     overflowItemSelected(name) {
         this.getTabLayoutInFocus().moveTabToStart(name);

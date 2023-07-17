@@ -1,8 +1,97 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-12 06:58:49">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-17 07:39:48">
+<Class name="DevBox.API.Console">
+<Super>%RegisteredObject</Super>
+<TimeChanged>66672,27448.927942</TimeChanged>
+<TimeCreated>66670,69816.036878</TimeCreated>
+
+<Method name="RunConsoleCommand">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String</FormalSpec>
+<Implementation><![CDATA[
+	zn pNamespace
+	set params=""
+	set code=%request.Content.Read(3600000)
+
+	if $e(code,1,3)="sql" {
+		return ##class(DevBox.Assistant.CodeRunner).RunSQL($e(code,4,*))
+
+	} elseif (($e(code,1,2)="ls")||($e(code,1,3)="dir")) {
+		set params(1)=$piece(code," ",2,*)
+		set command=$select($zversion(1)=2:"dir",1:"ls")
+		return ..ShellCommandAndOutputToHttpResponse(command,.params)
+		
+	} else {
+		return ##class(DevBox.Assistant.CodeRunner).RunCode(code)
+	}
+]]></Implementation>
+</Method>
+
+<Method name="GetContentTypeForFileExtension">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pFileExtension</FormalSpec>
+<Implementation><![CDATA[
+    if pFileExtension="text" return "text/plain"
+    if pFileExtension="html" return "text/html"
+    if pFileExtension="css" return "text/css"
+    if pFileExtension="js" return "application/javascript"
+    if pFileExtension="json" return "application/json"
+    if pFileExtension="xml" return "application/xml"
+    if pFileExtension="pdf" return "application/pdf"
+    if pFileExtension="jpg" return "image/jpeg"
+    if pFileExtension="png" return "image/png"
+    if pFileExtension="gif" return "image/gif"
+    if pFileExtension="mp3" return "audio/mpeg"
+    if pFileExtension="mp4" return "video/mp4"
+    if pFileExtension="zip" return "application/zip"
+    if pFileExtension="tar" return "application/x-tar"
+    if pFileExtension="gz" return "application/gzip"
+    if pFileExtension="csv" return "text/csv"
+    if pFileExtension="xls" return "application/vnd.ms-excel"
+    if pFileExtension="xlsx" return "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    if pFileExtension="doc" return "application/msword"
+    if pFileExtension="docx" return "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    return "application/octet-stream"
+]]></Implementation>
+</Method>
+
+<Method name="ShellCommandAndOutputToHttpResponse">
+<ClassMethod>1</ClassMethod>
+<FormalSpec><![CDATA[pCommand:%String,&pParams]]></FormalSpec>
+<Implementation><![CDATA[
+	set %response.ContentType="plain/text"
+	//create temp file and write dir output to it
+	set tmpfilename="devbox-stdout-"_$job_".txt"
+	set errFilename="devbox-stderr-"_$job_".txt"
+	set oik=$zf(-100,"/SHELL /STDERR="_errFilename_" /STDOUT="_tmpfilename,pCommand,.pParams)
+	if oik=0 {
+		set file=##class(%Stream.FileCharacter).%New()
+		do file.LinkToFile(tmpfilename)
+		do file.OutputToDevice()
+		set file=""
+	} else {
+		write !,"Falied to run command on server (Error code ",oik,")"
+		write !,"Command = ",pCommand
+		write !,"Params = ",!
+		zwrite pParams
+		write !,"Displaying the contents of STDERR",!
+		set file=##class(%Stream.FileCharacter).%New()
+		do file.LinkToFile(errFilename)
+		do file.OutputToDevice()
+		set file=""		
+	}
+	//remove temp file
+	set sc=##class(%File).Delete(tmpfilename)
+	set sc=##class(%File).Delete(errFilename)
+	return $$$OK
+]]></Implementation>
+</Method>
+</Class>
+
+
 <Class name="DevBox.API.Main">
 <Super>%CSP.REST</Super>
-<TimeChanged>66656,78690.127286</TimeChanged>
+<TimeChanged>66672,27566.557113</TimeChanged>
 <TimeCreated>66531,51410.686739</TimeCreated>
 
 <XData name="UrlMap">
@@ -13,6 +102,11 @@
 <Route Url="/namespace/:ns/defaultUrlPath" Method="GET" Call="GetNamespaceDefaultUrlPath" />
 
 <Route Url="/openai/completion/" Method="POST" Call="PostPromptGetCompletion" />
+
+<Route Url="/:ns/console/" Method="POST" Call="RunConsoleCommand" />
+<Route Url="/:ns/download/:filePath" Method="GET" Call="DownloadFile" />
+<Route Url="/:ns/upload/:folder/:file" Method="POST" Call="UploadFile" />
+<Route Url="/:ns/git/:gitCommand" Method="GET" Call="RunGitCommand" />
 
 <Route Url="/:ns/action/goto-code" Method="POST" Call="GotoCode" />
 
@@ -68,10 +162,114 @@ write ##class(DevBox.API.Main).GetNamespaceDefaultUrlPath("Apollo")</Description
 ]]></Implementation>
 </Method>
 
-<Method name="GetCode">
+<Method name="RunConsoleCommand">
 <ClassMethod>1</ClassMethod>
-<ReturnType>%DynamicAbstractObject</ReturnType>
-<Implementation><![CDATA[	set body=%request.Content.Read(%request.Content.Size)
+<FormalSpec>pNamespace:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[	return ##class(DevBox.API.Console).RunConsoleCommand(pNamespace)
+]]></Implementation>
+</Method>
+
+<Method name="RunGitCommand">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pGitCommand:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set %response.ContentType="plain/text"
+	set path=$get(^DevBox.Config("git-path"))
+	if path="" {
+		write !,"No git path found in the global ^DevBox.Config(""git-path"") , set this to the path of your git bin, e.g. on Windows it might be C:\Program Files\Git\bin"
+		return $$$OK
+	}
+	set project=$get(^DevBox.Config("git-project"))
+	if project="" {
+		write !,"No git project found in the global ^DevBox.Config(""git-project"") , set this to the path of your git enabled project source code"
+		return $$$OK
+	}
+	set gitCommand=##class(%SYSTEM.Encryption).Base64Decode(pGitCommand)
+	write project,"> ",gitCommand,!!
+	set params($i(params))="-C"
+	set params($i(params))=project
+	set gitCommand=$piece(gitCommand," ",2,*)
+	set string="off",chunk=""
+	for i=1:1:$l(gitCommand) {
+		set char=$e(gitCommand,i)
+		if string="off" {
+			if char="""" set string="on"
+			if char=" " {
+				if chunk'="" set params($i(params))=chunk
+				set chunk=""
+			} else {
+				if char'="""" set chunk=chunk_char
+			}
+		} else {
+			if char="""" {
+				set string="off"
+				if chunk'="" set params($i(params))=chunk
+				set chunk=""
+			} else {
+				set chunk=chunk_char
+			}
+		}
+	}
+	if chunk'="" set params($i(params))=chunk
+
+	set command=path_"git"
+	
+	do ##class(DevBox.API.Console).ShellCommandAndOutputToHttpResponse(command,.params)
+
+	//zw params
+
+	return $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="UploadFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pFolder:%String,pFileName:%String</FormalSpec>
+<ReturnType>%Status</ReturnType>
+<Implementation><![CDATA[
+	set pFolder=##class(%SYSTEM.Encryption).Base64Decode(pFolder)
+	set pFileName=##class(%SYSTEM.Encryption).Base64Decode(pFileName)
+	set fileDel=$select($zversion(1)=2:"\",1:"/")
+	if $e(pFolder,*)'=fileDel set pFolder=pFolder_fileDel
+	set filePath=pFolder_pFileName
+    try {
+		set file=##class(%Stream.FileBinary).%New()
+		do file.LinkToFile(filePath)
+		do file.CopyFrom(%request.Content)
+		set sc=file.%Save()
+		if $$$ISOK(sc) write !,"Successfully upload file to ",filePath
+    } catch ex {
+		write !,"Failed to upload file to ",filePath
+		write !
+		do ex.OutputToDevice()
+		write !
+		return $$$OK
+    }
+	if $$$ISERR(sc)	write !,"Failed to upload file to ",filePath," ("_$System.Status.GetOneErrorText(sc)_")"
+	quit $$$OK
+]]></Implementation>
+</Method>
+
+<Method name="DownloadFile">
+<ClassMethod>1</ClassMethod>
+<FormalSpec>pNamespace:%String,pFilePath:%String</FormalSpec>
+<Implementation><![CDATA[
+	set pFilePath=##class(%SYSTEM.Encryption).Base64Decode(pFilePath)
+	set fileDel=$select($zversion(1)=2:"\",1:"/")
+	set fileName=$piece(pFilePath,fileDel,*)
+	set fileExtension=$piece(pFilePath,".",*)
+	set contentType=##class(DevBox.API.Console).GetContentTypeForFileExtension(fileExtension)
+	set %response.ContentType=contentType
+	do %response.SetHeader("Content-Disposition","attachment;filename="""_fileName_"""")
+	set %response.NoCharSetConvert=1
+	set %response.Headers("Access-Control-Allow-Origin")="*"
+	set file=##class(%Stream.FileCharacter).%New()
+	do file.LinkToFile(pFilePath)
+	do file.OutputToDevice()
+	set file=""
+	return $$$OK
 ]]></Implementation>
 </Method>
 
@@ -86,7 +284,7 @@ write ##class(DevBox.API.Main).GetNamespaceDefaultUrlPath("Apollo")</Description
 		return ##class(DevBox.Assistant.CodeRunner).RunCode(prompt)
 	}
 
-	//do ObjectScript code
+	//do SQL
 	if $e($zcvt(prompt,"L"),1,7)="select " {
 		return ##class(DevBox.Assistant.CodeRunner).RunSQL(prompt)
 	}
@@ -114,6 +312,7 @@ write ##class(DevBox.API.Main).GetNamespaceDefaultUrlPath("Apollo")</Description
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
     set %response.ContentType="application/xml"
     do %response.SetHeader("Content-Disposition","attachment;filename="""_pName_"_"_$zd($h,8)_$tr($zt($p($h,",",2)),":")_".xml""")
     set %response.NoCharSetConvert=1
@@ -130,6 +329,7 @@ Export Class Package</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
     set %response.ContentType="application/xml"
     do %response.SetHeader("Content-Disposition","attachment;filename="""_pName_"_ALL_"_$zd($h,8)_$tr($zt($p($h,",",2)),":")_".xml""")
     set %response.NoCharSetConvert=1
@@ -146,6 +346,7 @@ Copy Class</Description>
 <FormalSpec>pNamespace:%String,pNameFrom:%String,pNameTo:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "copy ",pNameFrom," to ",pNameTo
 	quit $$$OK
 ]]></Implementation>
@@ -158,6 +359,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pNameFrom:%String,pNameTo:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "rename ",pNameFrom," to ",pNameTo
 	quit $$$OK
 ]]></Implementation>
@@ -168,6 +370,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "TODO: copy package "_pName_" !"
 	quit $$$OK
 ]]></Implementation>
@@ -178,6 +381,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "TODO:  rename package "_pName_" !"
 	quit $$$OK
 ]]></Implementation>
@@ -188,6 +392,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "TODO: Export routines by package name "_pName_" !"
 	quit $$$OK
 ]]></Implementation>
@@ -198,6 +403,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "TODO: export routine by name "_pName_" !"
 	quit $$$OK
 ]]></Implementation>
@@ -208,6 +414,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "TODO: Export web folder by name "_pName_" !"
 	quit $$$OK
 ]]></Implementation>
@@ -218,6 +425,7 @@ Rename Class</Description>
 <FormalSpec>pNamespace:%String,pName:%String</FormalSpec>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
+	zn pNamespace
 	write "TODO: Export web file by name "_pName_" !"
 	quit $$$OK
 ]]></Implementation>
@@ -227,7 +435,7 @@ Rename Class</Description>
 
 <Class name="DevBox.Assistant.CodeRunner">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66640,44034.021212</TimeChanged>
+<TimeChanged>66671,32531.945597</TimeChanged>
 <TimeCreated>66615,26700.678529</TimeCreated>
 
 <Method name="RunCode">
@@ -235,28 +443,27 @@ Rename Class</Description>
 <FormalSpec>code</FormalSpec>
 <Implementation><![CDATA[
     try {
-        set temp=""
-        
-        if $e(code,1,5)="write" {
-            set temp=""
-            set code="() set temp="_$e(code,6,*)_" quit temp"
+        if $e(code,1,2)="zj" {
+            set code="() set temp="_$p(code," ",2,*)_" quit temp"
             set temp=$xecute(code)
-        } else {
-            xecute code
-        }
-        if $IsObject(temp) {
-            try {
+            if $IsObject(temp) {
                 do ##class(DevBox.Lib.JSON.ObjectSerializer).ToJSON(temp,.json)
+                set %response.ContentType="application/json"
                 do json.OutputToDevice()
-            } catch (ex2) {
+            } else {
+                set %response.ContentType="plain/text"
                 zwrite temp
             }
         } else {
-            write temp
+            set %response.ContentType="plain/text"
+            xecute code
         }
     } catch (ex) {
-        write !,"<div>Error: ",ex.DisplayString()
-        write !,"<br>Line:",##class(Cogs.Lib.Dictionary).GetRoutineCodeForLineLabel($Piece($Piece($zerror,">",2)," ")),"</div>"
+        set %response.ContentType="plain/text"
+        write !,"Error:    ",ex.Name    
+        write !,"Location: ",ex.Location
+        write !,"Line:     ",##class(Cogs.Lib.Dictionary).GetRoutineCodeForLineLabel($Piece($Piece($zerror,">",2)," ")),"</div>"
+        write !,"Data:     ",ex.Data        
     }
     return $$$OK
 ]]></Implementation>
@@ -271,7 +478,7 @@ Rename Class</Description>
         set sc=stmt.%Prepare(.sql)
         if $$$ISERR(sc) write $SYSTEM.Status.GetOneErrorText(sc) return $$$OK
         set rs=stmt.%Execute()
-        write "<table>"
+        write "<table class='simple-table'>"
         write "<tr>"
         for i=1:1:rs.%ResultColumnCount {
             write "<th>", rs.%GetMetadata().columns.GetAt(i).colName, "</th>"
@@ -296,7 +503,7 @@ Rename Class</Description>
 
 <Class name="DevBox.Index">
 <Super>%CSP.Page</Super>
-<TimeChanged>66667,24928.118598</TimeChanged>
+<TimeChanged>66672,26759.43957</TimeChanged>
 <TimeCreated>66470,33492.553722</TimeCreated>
 
 <Method name="OnPage">
@@ -316,7 +523,7 @@ Rename Class</Description>
 
 		<link rel="stylesheet" data-name="vs/editor/editor.main" href="./lib/vs/editor/editor.main.css" />
 		
-		<link rel="icon" href="favicon.png">
+		<link rel="icon" href="favicon-x.png">
 
 	    <link rel="stylesheet" href="./style/reset.css">
 	    <link rel="stylesheet" href="./style/vars.css">
@@ -356,7 +563,7 @@ Rename Class</Description>
 			<!-- status bar -->
 			<div class="status-bar flex-row" id="statusBar">
 				<div class="flex-1 flex-row status-bar-tabs">
-					<button onclick="DevBoxEventController.publishEvent('StatusWindow','output',false,true)" class="status-bar-button">Output</button>
+					<button onclick="DevBoxEventController.publishEvent('StatusWindow','output',false,true)" class="status-bar-button">Console</button>
 				</div>
 				<div class="flex-1 flex-row status-bar-status">
 					<span id="CursorPosition">0:0</span>
@@ -368,8 +575,18 @@ Rename Class</Description>
 				</div>
 			</div>
 			
-			<div class="output-window" id="outputWindow">
+			<div class="console-window" id="outputWindow">
+				<div class="console-output" id="consoleOutput">
+				</div>
+				<div class="console-prompt flex-row">
+					<div id="console-namespace" class="console-namespace"></div>
+					<div class="flex-1">
+						<input id="console-input" onkeydown="if ((event.key === 'Enter')||(event.key === 'ArrowUp')||(event.key === 'ArrowDown')) { DevBoxEventController.publishEvent('onConsoleInputKey',event,false,true); }"></input>
+					</div>
+				</div>
+
 			</div>
+
 		
 		</div>
 		
@@ -416,6 +633,7 @@ TODO: Quick hack, move into an API</Description>
 	//user name
 	write !,"CloudStudioAppDefault = {};"
 	write !,"CloudStudioAppDefault.User='",$USERNAME,"';"
+	write !,"CloudStudioAppDefault.Server='",$system,"';"
 	
 	//default namespace
 	set thisNamespace=$NAMESPACE
@@ -723,23 +941,36 @@ TODO: Quick hack, move into an API</Description>
 <ClassMethod>1</ClassMethod>
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
-	
+	set system=$system
+	set server=$piece(system,":",1)
+	set instance=$piece(system,":",2)
+
 	&html<
 	
 	<div class="explorer flex-col" data-state="open" id="explorerPanel">
 		<div class="explorer-title flex-row flex-center-items">
-	  		<span id="namespace"></span>
+		<div class="pad-right-half-em"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+			<span id="namespace">NAMESPACE</span>
 	  		<button class="flex-right menu-top-button rel" id="file-menu">
 	  		  <i data-feather="more-vertical"></i>
 	          <div class="sub-menu menu-below-right">
+	            <div>Change Namespace...</div>
+				<div class="menu-divide"></div>			  
 	            <div onclick="DevBoxEventController.publishEvent('ExpandAll','',false,true)" id="">Expand All</div>
 	            <div onclick="DevBoxEventController.publishEvent('CollapseAll','',false,true)" id="">Collapse All</div>
 	          </div>
 	        </button>
 		</div>
 		<div class="flex-grow code-tree" id="explorer-tree"></div>
+		<div class="explorer-title flex-row flex-center-items">
+			<div class="pad-right-half-em"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+			<div id="server" class="center"><%=instance%></div>			
+		</div>		
+		<div class="explorer-title-2 flex-row flex-center-items">
+			<div class="pad-right-half-em"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-server"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"></rect><rect x="2" y="14" width="20" height="8" rx="2" ry="2"></rect><line x1="6" y1="6" x2="6.01" y2="6"></line><line x1="6" y1="18" x2="6.01" y2="18"></line></svg></div>
+			<div id="server" class="center"><%=server%></div>			
+		</div>
 	</div>
-	
 	>
 	quit ""
 ]]></Implementation>
@@ -777,7 +1008,7 @@ TODO: Quick hack, move into an API</Description>
 
 <Class name="DevBox.Lib.Exception.VerboseException">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66621,74432.789154</TimeChanged>
+<TimeChanged>66670,29140.570011</TimeChanged>
 <TimeCreated>66621,68434.122348</TimeCreated>
 
 <Method name="MakeVerboseExceptionAsJsonString">
@@ -1148,16 +1379,25 @@ If the request fails, it returns an error message.</Description>
 
 <Class name="DevBox.Util.DevBoxBuild">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66663,36326.359929</TimeChanged>
+<TimeChanged>66672,24338.409388</TimeChanged>
 <TimeCreated>66660,31242.383014</TimeCreated>
 
 <Parameter name="ROOT">
 <Default>E:\Projects\DevBox\src\iris\</Default>
 </Parameter>
 
+<Method name="Go">
+<Description>
+do ##class(DevBox.Util.DevBoxBuild).Go()</Description>
+<ClassMethod>1</ClassMethod>
+<Implementation><![CDATA[
+    do ..Build()
+    do ..Export()
+]]></Implementation>
+</Method>
+
 <Method name="Build">
 <Description>
-do ##class(DevBox.Util.DevBoxBuild).Build()
 Build method specific to Seans environment</Description>
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
@@ -1168,7 +1408,7 @@ Build method specific to Seans environment</Description>
 
 <Method name="Export">
 <Description>
-do ##class(DevBox.Util.DevBoxBuild).Export()</Description>
+Export DevBox classes into Git project</Description>
 <ClassMethod>1</ClassMethod>
 <Implementation><![CDATA[
     set statement=##class(%SQL.Statement).%New()

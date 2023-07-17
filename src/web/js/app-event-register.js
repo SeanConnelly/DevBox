@@ -54,8 +54,10 @@ export function appEventRegister(app)  {
     EventController.on('Model.DocumentsOpenForEdit', docName => app.editManager.openDocumentForEdit(docName) );
     EventController.on('Message.EditorDidGetFocus', (ev) => app.editManager.editorDidGetFocus(ev));
     EventController.on('Model.Appearance', themeName => app.editManager.setTheme(themeName));
-    EventController.on('Message.Console', (data) => app.editManager.outputToConsole(data));
+    EventController.on('Message.Console', (data) => app.console.outputToConsole(data));
     EventController.bindInnerTextToEvent('CursorPosition',"Message.CursorPosition", data => `${data.lineNumber || 0}:${data.column || 0}` );
+
+    EventController.bindInnerTextToEvent('console-namespace',"Model.NameSpace", data => `${data}>` );
 
     //TODO: Refactor app...
     EventController.on('Actions.EditorTabContextMenu', data => {
@@ -89,12 +91,17 @@ export function appEventRegister(app)  {
 
     EventController.on('FindInPackageByName', (name) => app.FindInPackageByName(name));
     EventController.on('FindInRoutinePackageByName', (name) => app.FindInRoutinePackageByName(name));
-    EventController.on('DocumentSearchResult', (results) => app.editManager.outputToConsole(results));
+    EventController.on('DocumentSearchResult', (results) => app.console.outputToConsole(results));
 
     // ----- TOOLS EVENTS -----
     EventController.on('ToolsGPTEnter', (e) => app.tools.onEnter(e));
-    EventController.on('GptPrompt.GetCompletion', (prompt) => app.tools.onContextPrompt(prompt));
     EventController.on('ToolsGPTClear', (prompt) => app.tools.clearResponses(prompt));
+
+    EventController.on('OnCompileRunCode', (prompt) => app.tools.onContextPrompt(prompt));
+    EventController.on('onConsoleInputKey', (e) => app.console.onConsoleInputKey(e));
+    EventController.on('GiveConsoleFocus', () => app.console.giveConsoleFocus());
+
+    EventController.on('RunHighlightedCode', (prompt) => app.console.runCommandInConsole(prompt));
 
 }
 

@@ -30,6 +30,9 @@
 .pad-right-sm {
     padding-right: 0.2em;
 }
+.pad-right-half-em {
+    padding-right: 0.5em;
+}
 .pad-right-1em {
     padding-right: 1em;
 }
@@ -47,6 +50,9 @@
 }
 .pad-3em {
     padding: 3em;
+}
+.pad-top-1em {
+    padding-top: 1em;
 }
 .grey {
     color: #888;

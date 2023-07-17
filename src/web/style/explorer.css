@@ -1,7 +1,12 @@
 .explorer-title {
     color: var(--appTextColorThree);
     padding: 0.3em 0.2em 0.3em 0.5em;
-    background-color: var(--appBackgroundFour);
+    background-color: var(--appBackgroundThree);
+}
+.explorer-title-2 {
+    color: var(--appTextColorThree);
+    padding: 0.3em 0.2em 0.3em 0.5em;
+    background-color: var(--appBackgroundTwo);
 }
 .explorer-content {
 

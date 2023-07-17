@@ -137,3 +137,20 @@
 .gpt-message-as-json {
     white-space: pre;
 }
+
+/* give table cells a border */
+.simple-table table {
+    border-collapse: collapse;
+}
+.simple-table td, .simple-table th {
+    border: 1px solid var(--appTextColor);
+    padding: 0.5em;
+}
+.simple-table th {
+    background-color: var(--appBackgroundThree);
+}
+.console-namespace {
+    padding-left: 1em;
+    padding-top: 0.2em;
+    padding-right: 0.2em;
+}

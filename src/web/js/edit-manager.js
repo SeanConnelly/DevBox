@@ -2,6 +2,7 @@ import {EventController} from "./lib/event-controller.js";
 import {Document} from "./servers/iris/Document.js";
 import {App} from "./app.js";
 import {System} from "./servers/iris/System.js";
+import {Watcher} from "./watcher.js";
 
 const $div = (...cl) => { let div = document.createElement('div'); if (cl) div.classList.add(...cl); return div}
 
@@ -65,10 +66,10 @@ export class EditManager {
             run: (editor)=> {
                 let selection = editor.getSelection();
                 let selectedText = editor.getModel().getValueInRange(selection);
-                if (this.watcher !== undefined) this.watcher.off();
-                this.watcher = EventController.on('AfterCompileOK', () => {
-                    EventController.publishMultiItemEvent("GptPrompt.GetCompletion",selectedText,false)
-                });
+                //remove any previous watchers
+                Watcher.unwatch();
+                //watch the selected text, will run after every compile
+                Watcher.watch(selectedText);
             }
         })
     }
@@ -80,7 +81,7 @@ export class EditManager {
             contextMenuGroupId: 'execution',
             contextMenuOrder: 1.5,
             run: (editor) => {
-                this.watcher.off();
+                Watcher.unwatch();
             }
         })
     }
@@ -94,7 +95,7 @@ export class EditManager {
             run: function(editor) {
                 let selection = editor.getSelection();
                 let selectedText = editor.getModel().getValueInRange(selection);
-                EventController.publishMultiItemEvent("GptPrompt.GetCompletion",selectedText,false)
+                EventController.publishMultiItemEvent("RunHighlightedCode",selectedText,false)
             }
         })
     }
@@ -274,31 +275,19 @@ export class EditManager {
         if (this.doc.isDTL) {
             //hijack the basic alert function, capture its text and display to the output window (applied to compile as well)
             this.el.children[0].contentWindow.window.alert = function(text) {
-                EventController.publishEvent('Message.Console',{
-                    title: 'save',
-                    state: 'info',
-                    text: text
-                },false);
+                EventController.publishEvent('Message.Console',text,false);
             }
             this.el.children[0].contentWindow.window.zenPage.studioMode=false;
             this.el.children[0].contentWindow.window.zenPage.saveDT(false);
         } else {
             if ((this.hasChanged === false) && (forceSave === false)) {
-                EventController.publishEvent('Message.Console',{
-                    title: 'save',
-                    state: 'info',
-                    text: 'no changes'
-                },false);
+                EventController.publishEvent('Message.Console',"No changes to save",false);
             } else {
                 this.doc.content = this.editor.getModel().getValue();
                 return this.doc.save()
                     .then( res => res.json())
                     .then( data => {
-                        EventController.publishEvent('Message.Console',{
-                            title: 'save',
-                            state: 'info',
-                            text: this.doc.name + ' saved'
-                        },false);
+                        EventController.publishEvent('Message.Console',this.doc.name + ' saved',false);
                         this.hasChanged = false;
                     })
                     .catch( err => { EventController.publishEvent('Message.Console',err,false) });
@@ -320,7 +309,7 @@ export class EditManager {
                     let msg = data.console.join('<br>')
                         .replace('ERROR','<span style="color:red;">ERROR</span>')
                         .replace('Compilation finished successfully','<span style="color:green;">Compilation finished successfully</span>')
-                    EventController.publishEvent('Message.Console',{html:msg},false);
+                    EventController.publishEvent('Message.Console',{data:msg,type:'html'},false);
                     EventController.publishEvent('AfterCompileOK',"",false)
                     this.reloadWithPreservedEdits().then( () => {
                         this.hasChanged = false;
@@ -329,7 +318,7 @@ export class EditManager {
                     localStorage.setItem('cspWatchPage',docRef);
                     console.log('cspWatchPage',docRef);
                 })
-                .catch( err => EventController.publishEvent('Message.Console',{html:err},false) );
+                .catch( err => EventController.publishEvent('Message.Console',{data:err,type:'html'},false) );
         }
     }
 
@@ -342,7 +331,8 @@ export class EditManager {
                     .replace('ERROR','<span style="color:red;">ERROR</span>')
                     .replace('Compilation finished successfully','<span style="color:green;">Compilation finished successfully</span>')
                 EventController.publishEvent('Message.Console', {
-                    html: msg
+                    data: msg,
+                    type: 'html'
                 },false);
                 //launch DTL test window
                 this.el.children[0].contentWindow.window.document.querySelector('input[value="Test"]').click();
@@ -370,7 +360,8 @@ export class EditManager {
                         EventController.publishEvent('Message.Console',{
                             title: 'save',
                             state: 'info',
-                            dtlResult: tr
+                            data: tr,
+                            type: 'html'
                         },false);
                         //now close the DTL test window
                         this.el.children[0].contentWindow.window.document.getElementsByTagName('iframe')[0].contentDocument.querySelector('input[value="Close"]').click();

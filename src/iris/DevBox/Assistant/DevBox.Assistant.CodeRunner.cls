@@ -4,28 +4,27 @@ Class DevBox.Assistant.CodeRunner Extends %RegisteredObject
 ClassMethod RunCode(code)
 {
     try {
-        set temp=""
-        
-        if $e(code,1,5)="write" {
-            set temp=""
-            set code="() set temp="_$e(code,6,*)_" quit temp"
+        if $e(code,1,2)="zj" {
+            set code="() set temp="_$p(code," ",2,*)_" quit temp"
             set temp=$xecute(code)
-        } else {
-            xecute code
-        }
-        if $IsObject(temp) {
-            try {
+            if $IsObject(temp) {
                 do ##class(DevBox.Lib.JSON.ObjectSerializer).ToJSON(temp,.json)
+                set %response.ContentType="application/json"
                 do json.OutputToDevice()
-            } catch (ex2) {
+            } else {
+                set %response.ContentType="plain/text"
                 zwrite temp
             }
         } else {
-            write temp
+            set %response.ContentType="plain/text"
+            xecute code
         }
     } catch (ex) {
-        write !,"<div>Error: ",ex.DisplayString()
-        write !,"<br>Line:",##class(Cogs.Lib.Dictionary).GetRoutineCodeForLineLabel($Piece($Piece($zerror,">",2)," ")),"</div>"
+        set %response.ContentType="plain/text"
+        write !,"Error:    ",ex.Name    
+        write !,"Location: ",ex.Location
+        write !,"Line:     ",##class(Cogs.Lib.Dictionary).GetRoutineCodeForLineLabel($Piece($Piece($zerror,">",2)," ")),"</div>"
+        write !,"Data:     ",ex.Data        
     }
     return $$$OK
 }
@@ -37,7 +36,7 @@ ClassMethod RunSQL(sql)
         set sc=stmt.%Prepare(.sql)
         if $$$ISERR(sc) write $SYSTEM.Status.GetOneErrorText(sc) return $$$OK
         set rs=stmt.%Execute()
-        write "<table>"
+        write "<table class='simple-table'>"
         write "<tr>"
         for i=1:1:rs.%ResultColumnCount {
             write "<th>", rs.%GetMetadata().columns.GetAt(i).colName, "</th>"

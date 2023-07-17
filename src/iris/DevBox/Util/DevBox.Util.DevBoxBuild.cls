@@ -3,7 +3,13 @@ Class DevBox.Util.DevBoxBuild Extends %RegisteredObject
 
 Parameter ROOT = "E:\Projects\DevBox\src\iris\";
 
-/// do ##class(DevBox.Util.DevBoxBuild).Build()
+/// do ##class(DevBox.Util.DevBoxBuild).Go()
+ClassMethod Go()
+{
+    do ..Build()
+    do ..Export()
+}
+
 /// Build method specific to Seans environment
 ClassMethod Build()
 {
@@ -11,7 +17,7 @@ ClassMethod Build()
     set status = $zf(-1, "powershell Compress-Archive -Path E:\Projects\DevBox\src\web\* -DestinationPath E:\Projects\DevBox\build\DevBoxWebFiles.zip")
 }
 
-/// do ##class(DevBox.Util.DevBoxBuild).Export()
+/// Export DevBox classes into Git project
 ClassMethod Export()
 {
     set statement=##class(%SQL.Statement).%New()
