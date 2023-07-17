@@ -48,29 +48,49 @@ Note, the console is a command runner, its not a terminal. All state is lost bet
 
 ### Function Keys
 F1 - within the editor opens the editor help menu
+
 F2 - Compiles the current code
+
 F3 - Find in the current editor
+
 F4 - Opens console and place cursor in input box
+
 
 ### Console Commands for light file operations with the OS (experimental)
 ls / dir <directory> - list the contents of the specified directory on the server
+
 download <file> - download the specified file from the server
+
 upload <file> - upload a file to the <file> location, this will open a file dialog to select the file to upload
+
 
 ### Console Commands
 help - display this help
+
 clear - clear the console
+
 config - display the devbox configuration for this namespace
+
 history - display the command history
+
 history <number> - show / edit the command at the specified history location
+
 !<number> - run the command at the specified history location
+
 history delete <number> - delete the command at the specified history location
+
 history delete all - delete all history
+
 sql <sql> - run the SQL command on the server
+
 zj / zjson <objectscript> - run the ObjectScript command and returns the output as JSON
+
 <objectscript> - run the ObjectScript command on the server (this has no session context)
+
 git <git command> - run the git command on the server
+
 watch <command-or-objectscript> - run the command when there is a compile event, this is useful for running unit tests
+
 unwatch - stop watching for compile events
 
 ## Overview
