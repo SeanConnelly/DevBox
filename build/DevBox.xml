@@ -1,20 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-17 07:39:48">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-17 17:26:11">
 <Class name="DevBox.API.Console">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66672,27448.927942</TimeChanged>
+<TimeChanged>66672,61661.530889</TimeChanged>
 <TimeCreated>66670,69816.036878</TimeCreated>
 
 <Method name="RunConsoleCommand">
 <ClassMethod>1</ClassMethod>
 <FormalSpec>pNamespace:%String</FormalSpec>
 <Implementation><![CDATA[
-	zn pNamespace
 	set params=""
 	set code=%request.Content.Read(3600000)
 
 	if $e(code,1,3)="sql" {
-		return ##class(DevBox.Assistant.CodeRunner).RunSQL($e(code,4,*))
+		return ##class(DevBox.Assistant.CodeRunner).RunSQL(pNamespace,$e(code,4,*))
 
 	} elseif (($e(code,1,2)="ls")||($e(code,1,3)="dir")) {
 		set params(1)=$piece(code," ",2,*)
@@ -22,7 +21,7 @@
 		return ..ShellCommandAndOutputToHttpResponse(command,.params)
 		
 	} else {
-		return ##class(DevBox.Assistant.CodeRunner).RunCode(code)
+		return ##class(DevBox.Assistant.CodeRunner).RunCode(pNamespace,code)
 	}
 ]]></Implementation>
 </Method>
@@ -57,13 +56,14 @@
 
 <Method name="ShellCommandAndOutputToHttpResponse">
 <ClassMethod>1</ClassMethod>
-<FormalSpec><![CDATA[pCommand:%String,&pParams]]></FormalSpec>
+<FormalSpec><![CDATA[pCommand:%String,&pParams,forceNoQuote=0]]></FormalSpec>
 <Implementation><![CDATA[
 	set %response.ContentType="plain/text"
 	//create temp file and write dir output to it
 	set tmpfilename="devbox-stdout-"_$job_".txt"
 	set errFilename="devbox-stderr-"_$job_".txt"
-	set oik=$zf(-100,"/SHELL /STDERR="_errFilename_" /STDOUT="_tmpfilename,pCommand,.pParams)
+	set noQuote=$select(forceNoQuote:" /NOQUOTE",1:"")
+	set oik=$zf(-100,"/SHELL /STDERR="_errFilename_" /STDOUT="_tmpfilename_noQuote,pCommand,.pParams)
 	if oik=0 {
 		set file=##class(%Stream.FileCharacter).%New()
 		do file.LinkToFile(tmpfilename)
@@ -91,7 +91,7 @@
 
 <Class name="DevBox.API.Main">
 <Super>%CSP.REST</Super>
-<TimeChanged>66672,27566.557113</TimeChanged>
+<TimeChanged>66672,28249.119257</TimeChanged>
 <TimeCreated>66531,51410.686739</TimeCreated>
 
 <XData name="UrlMap">
@@ -176,11 +176,6 @@ write ##class(DevBox.API.Main).GetNamespaceDefaultUrlPath("Apollo")</Description
 <ReturnType>%Status</ReturnType>
 <Implementation><![CDATA[
 	set %response.ContentType="plain/text"
-	set path=$get(^DevBox.Config("git-path"))
-	if path="" {
-		write !,"No git path found in the global ^DevBox.Config(""git-path"") , set this to the path of your git bin, e.g. on Windows it might be C:\Program Files\Git\bin"
-		return $$$OK
-	}
 	set project=$get(^DevBox.Config("git-project"))
 	if project="" {
 		write !,"No git project found in the global ^DevBox.Config(""git-project"") , set this to the path of your git enabled project source code"
@@ -214,7 +209,7 @@ write ##class(DevBox.API.Main).GetNamespaceDefaultUrlPath("Apollo")</Description
 	}
 	if chunk'="" set params($i(params))=chunk
 
-	set command=path_"git"
+	set command="git"
 	
 	do ##class(DevBox.API.Console).ShellCommandAndOutputToHttpResponse(command,.params)
 
@@ -435,13 +430,14 @@ Rename Class</Description>
 
 <Class name="DevBox.Assistant.CodeRunner">
 <Super>%RegisteredObject</Super>
-<TimeChanged>66671,32531.945597</TimeChanged>
+<TimeChanged>66672,61755.434981</TimeChanged>
 <TimeCreated>66615,26700.678529</TimeCreated>
 
 <Method name="RunCode">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>code</FormalSpec>
+<FormalSpec>namespace,code</FormalSpec>
 <Implementation><![CDATA[
+    zn namespace
     try {
         if $e(code,1,2)="zj" {
             set code="() set temp="_$p(code," ",2,*)_" quit temp"
@@ -471,8 +467,9 @@ Rename Class</Description>
 
 <Method name="RunSQL">
 <ClassMethod>1</ClassMethod>
-<FormalSpec>sql</FormalSpec>
+<FormalSpec>namespace,sql</FormalSpec>
 <Implementation><![CDATA[
+    zn namespace
     try {
         set stmt=##class(%SQL.Statement).%New()
         set sc=stmt.%Prepare(.sql)
@@ -503,7 +500,7 @@ Rename Class</Description>
 
 <Class name="DevBox.Index">
 <Super>%CSP.Page</Super>
-<TimeChanged>66672,26759.43957</TimeChanged>
+<TimeChanged>66672,62437.314213</TimeChanged>
 <TimeCreated>66470,33492.553722</TimeCreated>
 
 <Method name="OnPage">
@@ -555,7 +552,7 @@ Rename Class</Description>
 		</div>
 	    
 	    <!-- output windows -->
-		<div class="status-window" id="statusWindow" data-state='closed'>
+		<div class="status-window" id="statusWindow" data-state='open' style="right: 0px; height: 140px;">
 
 			<!-- output dragbar -->
 			<div onmousedown="DevBoxEventController.publishEvent('OutputDragbar','start',false)" class="output-dragbar" id="outputDragbar"></div>

@@ -69,11 +69,6 @@ ClassMethod RunConsoleCommand(pNamespace As %String) As %Status
 ClassMethod RunGitCommand(pNamespace As %String, pGitCommand As %String) As %Status
 {
 	set %response.ContentType="plain/text"
-	set path=$get(^DevBox.Config("git-path"))
-	if path="" {
-		write !,"No git path found in the global ^DevBox.Config(""git-path"") , set this to the path of your git bin, e.g. on Windows it might be C:\Program Files\Git\bin"
-		return $$$OK
-	}
 	set project=$get(^DevBox.Config("git-project"))
 	if project="" {
 		write !,"No git project found in the global ^DevBox.Config(""git-project"") , set this to the path of your git enabled project source code"
@@ -107,7 +102,7 @@ ClassMethod RunGitCommand(pNamespace As %String, pGitCommand As %String) As %Sta
 	}
 	if chunk'="" set params($i(params))=chunk
 
-	set command=path_"git"
+	set command="git"
 	
 	do ##class(DevBox.API.Console).ShellCommandAndOutputToHttpResponse(command,.params)
 

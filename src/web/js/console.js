@@ -96,6 +96,15 @@ export class Console {
             input = 'zwrite ^DevBox.Config';
         }
 
+        //TODO: need to make sure you can only ZN into a namespace that exists
+        //if (input.toLowerCase().startsWith('zn')) {
+        //    let namespace = input.substring(3).trim();
+        //    EventController.publishEvent('SwapNamespace',namespace,false);
+        //    ev.target.value = '';
+        //    this.placeCursorAtEnd(ev.target);
+        //    return;
+        //}
+
         if (input === 'history') {
             this.displayHistory();
             ev.target.value = '';
@@ -175,7 +184,7 @@ export class Console {
 
         if (input.toLowerCase().startsWith('download')) {
             let filePath = btoa(input.substring(9));
-            let url = `/devboxapi/${App.app.namespace}/download/${filePath}`;
+            let url = `/devboxapi/${encodeURIComponent(App.app.namespace)}/download/${filePath}`;
             this.downloadFile(url);
             ev.target.value = '';
             this.placeCursorAtEnd(ev.target);
@@ -204,7 +213,7 @@ export class Console {
                 //post each file individually to the server at /devboxapi/{namespace}/upload/:filename, posting the file in the body of the request
                 for (let i = 0; i < ev.target.files.length; i++) {
                     let file = ev.target.files[i];
-                    let url = `/devboxapi/${App.app.namespace}/upload/${btoa(filePath)}/${btoa(file.name)}`;
+                    let url = `/devboxapi/${encodeURIComponent(App.app.namespace)}/upload/${btoa(filePath)}/${btoa(file.name)}`;
                     fetch(url,{
                         method : 'POST',
                         body : file
@@ -241,7 +250,7 @@ export class Console {
 
     runGitCommand(ev, code) {
         let gitCommand = btoa(code);
-        let url = `/devboxapi/${App.app.namespace}/git/${gitCommand}`;
+        let url = `/devboxapi/${encodeURIComponent(App.app.namespace)}/git/${gitCommand}`;
         fetch(url).then(response => {
             return response.text();
         }).then(outputText => {
@@ -259,7 +268,7 @@ export class Console {
         }
         this.historyPointer = 0;
         this.addInputToHistoryStore(code);
-        let url = `/devboxapi/${App.app.namespace}/console/`;
+        let url = `/devboxapi/${encodeURIComponent(App.app.namespace)}/console/`;
         EventController.publishEvent('Message.Console',App.app.namespace + '> ' + code,false);
         fetch(url, {
             method: 'POST',

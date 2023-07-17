@@ -1,8 +1,9 @@
 Class DevBox.Assistant.CodeRunner Extends %RegisteredObject
 {
 
-ClassMethod RunCode(code)
+ClassMethod RunCode(namespace, code)
 {
+    zn namespace
     try {
         if $e(code,1,2)="zj" {
             set code="() set temp="_$p(code," ",2,*)_" quit temp"
@@ -29,8 +30,9 @@ ClassMethod RunCode(code)
     return $$$OK
 }
 
-ClassMethod RunSQL(sql)
+ClassMethod RunSQL(namespace, sql)
 {
+    zn namespace
     try {
         set stmt=##class(%SQL.Statement).%New()
         set sc=stmt.%Prepare(.sql)

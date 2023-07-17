@@ -3,12 +3,11 @@ Class DevBox.API.Console Extends %RegisteredObject
 
 ClassMethod RunConsoleCommand(pNamespace As %String)
 {
-	zn pNamespace
 	set params=""
 	set code=%request.Content.Read(3600000)
 
 	if $e(code,1,3)="sql" {
-		return ##class(DevBox.Assistant.CodeRunner).RunSQL($e(code,4,*))
+		return ##class(DevBox.Assistant.CodeRunner).RunSQL(pNamespace,$e(code,4,*))
 
 	} elseif (($e(code,1,2)="ls")||($e(code,1,3)="dir")) {
 		set params(1)=$piece(code," ",2,*)
@@ -16,7 +15,7 @@ ClassMethod RunConsoleCommand(pNamespace As %String)
 		return ..ShellCommandAndOutputToHttpResponse(command,.params)
 		
 	} else {
-		return ##class(DevBox.Assistant.CodeRunner).RunCode(code)
+		return ##class(DevBox.Assistant.CodeRunner).RunCode(pNamespace,code)
 	}
 }
 
@@ -45,13 +44,14 @@ ClassMethod GetContentTypeForFileExtension(pFileExtension)
     return "application/octet-stream"
 }
 
-ClassMethod ShellCommandAndOutputToHttpResponse(pCommand As %String, ByRef pParams)
+ClassMethod ShellCommandAndOutputToHttpResponse(pCommand As %String, ByRef pParams, forceNoQuote = 0)
 {
 	set %response.ContentType="plain/text"
 	//create temp file and write dir output to it
 	set tmpfilename="devbox-stdout-"_$job_".txt"
 	set errFilename="devbox-stderr-"_$job_".txt"
-	set oik=$zf(-100,"/SHELL /STDERR="_errFilename_" /STDOUT="_tmpfilename,pCommand,.pParams)
+	set noQuote=$select(forceNoQuote:" /NOQUOTE",1:"")
+	set oik=$zf(-100,"/SHELL /STDERR="_errFilename_" /STDOUT="_tmpfilename_noQuote,pCommand,.pParams)
 	if oik=0 {
 		set file=##class(%Stream.FileCharacter).%New()
 		do file.LinkToFile(tmpfilename)

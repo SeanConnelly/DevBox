@@ -47,7 +47,7 @@ ClassMethod OnPage() As %Status [ ServerOnly = 1 ]
 		</div>
 	    
 	    <!-- output windows -->
-		<div class="status-window" id="statusWindow" data-state='closed'>
+		<div class="status-window" id="statusWindow" data-state='open' style="right: 0px; height: 140px;">
 
 			<!-- output dragbar -->
 			<div onmousedown="DevBoxEventController.publishEvent('OutputDragbar','start',false)" class="output-dragbar" id="outputDragbar"></div>
