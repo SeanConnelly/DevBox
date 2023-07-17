@@ -1,5 +1,78 @@
 # DevBox IDE
 
+## Latest Updates
+
+Added interactive console that includes the command "help", this will display the console help shown below.
+
+This includes experimental support for running git commands. To use this, git bin needs to be in the environment path on Windows (not tested on Linux yet). The only caveat is that its not interactive, so if git prompts for user inputs, its not going to show up in the console. Git will also run under the IRIS user account, so git push might not work if its prompting for security actions. Main motivation is to do "light" repetative tasks such as add, commit and push so there is little motivation to make it fully interactive at this stage, will consider in the future. Also, it needs to know where the project is, this needs to be set in a global config variable. This does mean only one git project per namespace. This will improve when IRIS Projects is implemented.
+
+```
+^DevBox.Config("git-project")="E:\Projects\DevBox"
+```
+
+## Roadmap
+
+Development is fast and breaking at the moment. Expect bugs and issues until it gets to a more stable beta version.
+
+The road to Beta...
+
+1. Complete all menu items - Save As, Rename, View Other, Move Left
+2. Build an awesome templating solution for File -> New
+3. Keep improving the console, adding new features such as custom run commands, command chaining, reactive delogger
+4. Auto complete is 50% done, but needs a lot of work now to make it perfect
+5. Make projects a first class feature of the IDE.
+6. Keep refactoring the code.
+
+Future roadmaps to come.
+
+## Code Assistant
+
+This is a parallel effort at the moment. The roadmap is to keep working and experimenting with prompt engineering to fully understand how and where LLM's can improve ObjectScript developer experience.
+
+To open the code assistant click the icon in top right corner. Using the code assistant requires an OpenAI API token. The assistant will tell you where to put it. 
+
+The solution currently lets you interact with highlighted source code with 4 options...
+
+* Complete this code
+* Create comments for this code
+* Explain this code
+* Review this code
+
+Complete this code can be hit and miss. The more guiding information you put into comments, the better the outcome.
+
+One thought is to work on a One-Shot seeding solution that is able to pre qualify the prompt and embed just the right ObjectScript code examples / meta information to improve results.
+
+## Console Help
+
+Note, the console is command runner, its not a terminal. All state is lost between commands. All terminal escapes will be filtered out. For a fully featured terminal consider using WebTerminal.
+
+### Function Keys
+F1 - within the editor opens the editor help menu
+F2 - Compiles the current code
+F3 - Find in the current editor
+F4 - Opens console and place cursor in input box
+
+### Console Commands for light file operations with the OS (experimental)
+ls / dir <directory> - list the contents of the specified directory on the server
+download <file> - download the specified file from the server
+upload <file> - upload a file to the <file> location, this will open a file dialog to select the file to upload
+
+### Console Commands
+help - display this help
+clear - clear the console
+config - display the devbox configuration for this namespace
+history - display the command history
+history <number> - show / edit the command at the specified history location
+!<number> - run the command at the specified history location
+history delete <number> - delete the command at the specified history location
+history delete all - delete all history
+sql <sql> - run the SQL command on the server
+zj / zjson <objectscript> - run the ObjectScript command and returns the output as JSON
+<objectscript> - run the ObjectScript command on the server (this has no session context)
+git <git command> - run the git command on the server
+watch <command-or-objectscript> - run the command when there is a compile event, this is useful for running unit tests
+unwatch - stop watching for compile events
+
 ## Overview
 
 Introducing DevBox, the evolution of the prototype IDE previously called CloudStudio. This new version represents a substantial refactor, packed with an array of innovative features currently in alpha.
