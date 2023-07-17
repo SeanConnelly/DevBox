@@ -390,6 +390,7 @@ export class Console {
             if (type === 'object') this.outputObjectToConsole(msg,outputWindow);
             if (type === 'array') this.outputArrayToConsole(msg,outputWindow);
             if (type === 'zwrite') this.outputZWriteToConsole(msg.data,outputWindow);
+            if (type === 'console') this.outputArrayToConsole(msg.data,outputWindow);
         }
 
         //make sure the bottom of the console is always visible
@@ -398,7 +399,9 @@ export class Console {
 
     outputTextToConsole(data,outputWindow) {
         let pre = document.createElement('pre');
-        pre.innerText = data;
+        //pre.innerText = data;
+        //strip out terminal commands, experimental, not sure if this is a good idea, but lets go!
+        pre.innerText = data.replace(/\x1B\[\d+m/g, '')
         pre.classList.add('pad-top-1em');
         outputWindow.appendChild(pre);
     }

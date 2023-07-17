@@ -91,7 +91,7 @@ export function appEventRegister(app)  {
 
     EventController.on('FindInPackageByName', (name) => app.FindInPackageByName(name));
     EventController.on('FindInRoutinePackageByName', (name) => app.FindInRoutinePackageByName(name));
-    EventController.on('DocumentSearchResult', (results) => app.console.outputToConsole(results));
+    EventController.on('DocumentSearchResult', (response) => app.console.outputToConsole({type:'console',data:response.results.console}));
 
     // ----- TOOLS EVENTS -----
     EventController.on('ToolsGPTEnter', (e) => app.tools.onEnter(e));
