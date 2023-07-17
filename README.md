@@ -44,7 +44,7 @@ One thought is to work on a One-Shot seeding solution that is able to pre qualif
 
 ## Console Help
 
-Note, the console is command runner, its not a terminal. All state is lost between commands. All terminal escapes will be filtered out. For a fully featured terminal consider using WebTerminal.
+Note, the console is a command runner, its not a terminal. All state is lost between commands. All terminal escapes will be filtered out. For a fully featured terminal consider using WebTerminal.
 
 ### Function Keys
 F1 - within the editor opens the editor help menu
