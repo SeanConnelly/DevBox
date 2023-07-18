@@ -7,7 +7,7 @@ import {DialogBox} from "./ui/dialog.js"
 import {DocumentTemplates} from "./servers/iris/document-templates.js";
 import {System} from "./servers/iris/System.js";
 
-//TODO: Split this class into smaller classes, in particular move UI widgets to ui folder
+//TODO: Split this class into smaller classes, in particular move UI widgets to ui folder - N.B. Get unit testing up and running first!
 
 //tiny dom helper
 const $div = (...cl) => { let div = document.createElement('div'); if (cl) div.classList.add(...cl); return div}
@@ -326,14 +326,14 @@ export class DocumentManager {
     // ACTIONS FOR CONTROLLING MONACO EDITOR
     //=========================================================================
     toggleMiniMap() {
-        let isEnabled = EventController.toggleBooleanItemEvent('Model.MiniMap');
+        let isEnabled = EventController.toggleBooleanItemEvent('ShowMiniMap');
         this.eachEditor( editor => {
             if (editor.type === 'monaco') editor.showMiniMap(isEnabled)
         })
     }
 
     toggleLineNumbers() {
-        let isOnOrOff = EventController.toggleBooleanItemEvent('Model.LineNumbers');
+        let isOnOrOff = EventController.toggleBooleanItemEvent('ShowLineNumbers');
         this.eachEditor( editor => {
             if (editor.type === 'monaco') editor.showLineNumbers(isOnOrOff)
         })

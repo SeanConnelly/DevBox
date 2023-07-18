@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-17 20:28:11">
+<Export generator="IRIS" version="26" zv="IRIS for Windows (x86-64) 2020.1 (Build 215)" ts="2023-07-18 18:51:37">
 <Class name="DevBox.API.Console">
 <Super>%RegisteredObject</Super>
 <TimeChanged>66672,61661.530889</TimeChanged>
@@ -500,7 +500,7 @@ Rename Class</Description>
 
 <Class name="DevBox.Index">
 <Super>%CSP.Page</Super>
-<TimeChanged>66672,62437.314213</TimeChanged>
+<TimeChanged>66673,14034.269412</TimeChanged>
 <TimeCreated>66470,33492.553722</TimeCreated>
 
 <Method name="OnPage">
@@ -790,8 +790,8 @@ TODO: Quick hack, move into an API</Description>
 			    </div>		    
 		    </div>
 		    <div class="menu-divide"></div>
-		    <div onclick="DevBoxEventController.publishEvent('ShowLineNumbers','toggle',false,true)" class="flex-row flex-center-items h16">Show Line Numbers</div>
-		    <div onclick="DevBoxEventController.publishEvent('ShowMiniMap','toggle',false,true)" class="flex-row flex-center-items h16">Show Mini Map</div>
+		    <div onclick="DevBoxEventController.publishEvent('ChangeShowLineNumbers','toggle',false,true)" class="flex-row flex-center-items h16">Show Line Numbers</div>
+		    <div onclick="DevBoxEventController.publishEvent('ChangeShowMiniMap','toggle',false,true)" class="flex-row flex-center-items h16">Show Mini Map</div>
    		    <div class="menu-divide"></div>
    		    <div class="rel">
 			    <div class="flex-row flex-center-items"><div class="flex-1 pad-right-1em">Appearance</div><div><i data-feather="chevron-right"></i></div></div>

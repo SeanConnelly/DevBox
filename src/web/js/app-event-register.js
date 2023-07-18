@@ -14,8 +14,8 @@ export function appEventRegister(app)  {
     EventController.on('FindInFiles', () => new DocumentSearch('',''));
 
     // ----- EDITING EVENTS -----  //TODO: Refactor events that do not belong to editManager, make this one file great and the rest of the app follows suit
-    EventController.on('ShowLineNumbers', toggle => app.editManager.toggleLineNumbers());
-    EventController.on('ShowMiniMap', toggle => app.editManager.toggleMiniMap());
+    EventController.on('ChangeShowLineNumbers', toggle => app.editManager.toggleLineNumbers());
+    EventController.on('ChangeShowMiniMap', toggle => app.editManager.toggleMiniMap());
     EventController.on('StatusWindow', (content) => app.editManager.toggleStatusWindow(content));
     EventController.on('Save', () => app.editManager.saveDocumentInFocus());
     EventController.on('SaveAll', () => app.editManager.saveAllDocuments());

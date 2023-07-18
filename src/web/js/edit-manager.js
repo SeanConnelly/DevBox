@@ -35,8 +35,8 @@ export class EditManager {
             language: doc.language,
             theme: themeName,
             automaticLayout: true,
-            minimap: {'enabled' : EventController.get('Model.MiniMap') },
-            lineNumbers: EventController.get('Model.LineNumbers')
+            minimap: {'enabled' : EventController.get('ShowMiniMap') },
+            lineNumbers: EventController.get('ShowLineNumbers') ? 'on' : 'off'
         })
         this.type='monaco';
         this.editor.getModel().setEOL(0);
@@ -361,7 +361,7 @@ export class EditManager {
                             title: 'save',
                             state: 'info',
                             data: tr,
-                            type: 'html'
+                            type: 'element'
                         },false);
                         //now close the DTL test window
                         this.el.children[0].contentWindow.window.document.getElementsByTagName('iframe')[0].contentDocument.querySelector('input[value="Close"]').click();

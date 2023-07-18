@@ -400,7 +400,7 @@ export class Console {
     outputTextToConsole(data,outputWindow) {
         let pre = document.createElement('pre');
         //pre.innerText = data;
-        //strip out terminal commands, experimental, not sure if this is a good idea, but lets go!
+        //strip out terminal commands, experimental, not sure if this is a good idea, but let's see how it goes
         pre.innerText = data.replace(/\x1B\[\d+m/g, '')
         pre.classList.add('pad-top-1em');
         outputWindow.appendChild(pre);

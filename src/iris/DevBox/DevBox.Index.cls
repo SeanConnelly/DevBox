@@ -279,8 +279,8 @@ ClassMethod TopMenu() As %Status
 			    </div>		    
 		    </div>
 		    <div class="menu-divide"></div>
-		    <div onclick="DevBoxEventController.publishEvent('ShowLineNumbers','toggle',false,true)" class="flex-row flex-center-items h16">Show Line Numbers</div>
-		    <div onclick="DevBoxEventController.publishEvent('ShowMiniMap','toggle',false,true)" class="flex-row flex-center-items h16">Show Mini Map</div>
+		    <div onclick="DevBoxEventController.publishEvent('ChangeShowLineNumbers','toggle',false,true)" class="flex-row flex-center-items h16">Show Line Numbers</div>
+		    <div onclick="DevBoxEventController.publishEvent('ChangeShowMiniMap','toggle',false,true)" class="flex-row flex-center-items h16">Show Mini Map</div>
    		    <div class="menu-divide"></div>
    		    <div class="rel">
 			    <div class="flex-row flex-center-items"><div class="flex-1 pad-right-1em">Appearance</div><div><i data-feather="chevron-right"></i></div></div>
