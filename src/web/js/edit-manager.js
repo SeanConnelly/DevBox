@@ -271,6 +271,7 @@ export class EditManager {
     }
 
     save(forceSave = false) {
+
         //SAVE DTL
         if (this.doc.isDTL) {
             //hijack the basic alert function, capture its text and display to the output window (applied to compile as well)
@@ -284,15 +285,31 @@ export class EditManager {
                 EventController.publishEvent('Message.Console',"No changes to save",false);
             } else {
                 this.doc.content = this.editor.getModel().getValue();
+                if (this.doc.isCLX) {
+                    console.log('compile CLX');
+                    this.compileCLX();
+                    //convert name from .clx to .cls
+                    this.doc.name = this.doc.name.replace('.clx','.cls');
+                }
                 return this.doc.save()
                     .then( res => res.json())
                     .then( data => {
+                        if (data.result.status.startsWith('Error')) throw new Error(data.result.status);
                         EventController.publishEvent('Message.Console',this.doc.name + ' saved',false);
                         this.hasChanged = false;
                     })
-                    .catch( err => { EventController.publishEvent('Message.Console',err,false) });
+                    .catch( err => {
+                        EventController.publishEvent('Message.Console','Save ' + err.message,false);
+                    });
             }
         }
+    }
+
+    compileCLX() {
+        //source contains ObjectScript code, split with newline characters
+        let source = this.doc.content;
+        //source contains backtick strings `example`, we need to use regex to find these and replace them with a compiled version
+
     }
 
     compile() {

@@ -401,7 +401,9 @@ export class Console {
         let pre = document.createElement('pre');
         //pre.innerText = data;
         //strip out terminal commands, experimental, not sure if this is a good idea, but let's see how it goes
+        //TODO: Make the console resilient to different types, spaces and so on
         pre.innerText = data.replace(/\x1B\[\d+m/g, '')
+        //pre.innerHTML = data.replace(/\x1B\[\d+m/g, '')
         pre.classList.add('pad-top-1em');
         outputWindow.appendChild(pre);
     }

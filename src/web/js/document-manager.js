@@ -469,6 +469,7 @@ export class DocumentManager {
     launchUtility(utilName) {
         let ns = EventController.get('Model.NameSpace');
         if (utilName === 'Management Portal') window.open(`/csp/sys/%25CSP.Portal.Home.zen?$NAMESPACE=${ns}`);
+        if (utilName === 'UnitTest Manager') window.open(`/csp/sys/%25UnitTest.Portal.Home.cls`);
         if (utilName === 'SQL DocumentExplorer') window.open(`/csp/sys/exp/%25CSP.UI.Portal.SQL.Home.zen?$NAMESPACE=${ns}`);
         if (utilName === 'Class Reference') window.open(`/csp/documatic/%25CSP.Documatic.cls?LIBRARY=${ns}`);
         if (utilName === 'Production Configuration') window.open(`/csp/healthshare/${ns}/EnsPortal.ProductionConfig.zen?$NAMESPACE=${ns}`);
@@ -645,6 +646,7 @@ export class DocumentManager {
 
 let newItemPromptText = {
     "Registered": {Text:"Registered Class",Type:"CLS"},
+    "ExtendedRegistered": {Text:"Extended Registered Class",Type:"CLX"},
     "Persistent": {Text:"Persistent Class",Type:"CLS"},
     "Registered XML": {Text:"Registered Class",Type:"CLS"},
     "Persistent XML": {Text:"Persistent Class",Type:"CLS"},
@@ -653,7 +655,11 @@ let newItemPromptText = {
     "CSP": {Text:"CSP Class",Type:"CLS"},
     "Routine": {Text:"ObjectScript Routine",Type:"MAC"},
     "Macro": {Text:"Macro File",Type:"INC"},
-    "Intermediary": {Text:"Intermediary Routine",Type:"INT"}
+    "Intermediary": {Text:"Intermediary Routine",Type:"INT"},
+    "Unit Test": {Text:"Unit Test Class",Type:"CLS"},
+    "Unit Test with On events": {Text:"Unit Test Class",Type:"CLS"},
+    "Unit Test HL7 Transformation": {Text:"HL7 Unit Test Class",Type:"CLS"}
+
 }
 
 

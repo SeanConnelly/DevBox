@@ -103,6 +103,8 @@ export function appEventRegister(app)  {
 
     EventController.on('RunHighlightedCode', (prompt) => app.console.runCommandInConsole(prompt));
 
+    EventController.on('GptPrompt.GetCompletion', (prompt) => app.tools.onContextPrompt(prompt));
+
 }
 
 // TODO: Refactor events, make this one file great and the rest of the app follows suit

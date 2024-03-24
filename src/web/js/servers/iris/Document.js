@@ -8,17 +8,23 @@ export class Document {
         this.content = content;
         this.language = this.getLanguage(name.split('.').pop().toLowerCase());
         //this.meta = { tabLayoutId : undefined }
-        this.isDTL = this.checkIsDTL()
+        this.isDTL = this.checkIsDTL();
+        this.isCLX = this.checkIsCLX();
     }
 
     static open(ns,docName) {
         let urlName = docName;
         if (urlName.slice(-3) === 'dtl') urlName = urlName.slice(0,-3) + 'cls';
         if (urlName.slice(-3) === 'bpl') urlName = urlName.slice(0,-3) + 'cls';
+        if (urlName.slice(-3) === 'clx') urlName = urlName.slice(0,-3) + 'cls';
         return new Promise( (resolve,reject) => {
             let url = `/api/atelier/v1/${encodeURI(ns)}/doc/${encodeURI(urlName)}`;
             fetch(url).then( res => res.json()).then( data => {
-                resolve(new Document(ns,docName,data.result.content.join(String.fromCharCode(10))));
+                if (data.result.status === '') {
+                    resolve(new Document(ns,docName,data.result.content.join(String.fromCharCode(10))));
+                } else {
+                    reject(data.result.status);
+                }
             }).catch( err => {
                 reject(err);
             })
@@ -61,6 +67,7 @@ export class Document {
         if (ext === 'cls') return "ObjectScript";
         if (ext === 'int') return "ObjectScript";
         if (ext === 'mac') return "ObjectScript";
+        if (ext === 'clx') return "ExtendedObjectScript";
         return extensions['.' + ext] || 'text';
     }
 
@@ -99,6 +106,10 @@ export class Document {
     checkIsDTL() {
         //TODO: simple text match for now, replace with cleaner solution
         return (this.content.indexOf('Extends Ens.DataTransformDTL') > -1)
+    }
+
+    checkIsCLX() {
+        return (this.name.indexOf('.clx') > -1)||(this.content.indexOf('XDATA CLX') > -1)
     }
 
     static listAll(ns) {

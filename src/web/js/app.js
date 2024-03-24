@@ -9,7 +9,8 @@ import {DocumentSearch} from './document-search.js';
 import {Console} from './console.js';
 
 //Import Monaco registrations
-import {} from './servers/iris/Language.js';
+import {} from './servers/iris/language-objectscript.js';
+import {} from './servers/iris/language-extended-objectscript.js';
 import {} from './servers/iris/CompletionItemProvider.js';
 import {System} from "./servers/iris/System.js";
 import {Document} from "./servers/iris/Document.js";
@@ -166,6 +167,7 @@ export class App {
     }
 
     ExportRoutinePackageByName(name) {
+            
     }
 
     ExportRoutineByName(name) {

@@ -1,4 +1,4 @@
-monaco.languages.register({id: 'ObjectScript'});
+monaco.languages.register({id: 'ExtendedObjectScript'});
 
 /*
     comment: Used for comments.
@@ -15,7 +15,7 @@ monaco.languages.register({id: 'ObjectScript'});
     operator: Used for operators.
  */
 
-monaco.languages.setMonarchTokensProvider('ObjectScript', {
+monaco.languages.setMonarchTokensProvider('ExtendedObjectScript', {
 
     ignoreCase: true,
 
@@ -37,7 +37,7 @@ monaco.languages.setMonarchTokensProvider('ObjectScript', {
         'zkill','zl','znspace','zn','ztrap','zwrite','zw','zzdump','zzwrite',
         'dim',
         'try', 'catch',
-        'of', 'on'
+        'of', 'on', 'in'
     ],
 
     shorthand: [
@@ -105,6 +105,9 @@ monaco.languages.setMonarchTokensProvider('ObjectScript', {
             [/<!--[\s\S]*?-->/, 'comment' ],
             [/<!\[CDATA\[[\s\S]*?]]>/, 'comment' ],
 
+            // Multi-line template string start
+            [/`/, { token: 'string.quote', bracket: '@open', next: '@templateString' }],
+
             [/@symbols/, {
                 cases: {
                     '@operators': 'variable',
@@ -168,10 +171,23 @@ monaco.languages.setMonarchTokensProvider('ObjectScript', {
 
         ],
 
+        templateString: [
+            [/\\`/, 'string.escape'], // Escaped backtick
+            [/\{\{\/?[^\}]+\}\}/, { cases: {
+                    '@default': 'variable', // Default Handlebars expression
+                    '/\\{\\{#\\S+?\\s/': 'keyword', // Handlebars command starting with #
+                    '/\\{\\{\\/\\S+?\\s/': 'keyword', // Handlebars command starting with /
+                    '\\}\\}': 'keyword' // Closing handlebars
+                }}],
+            [/`/, { token: 'string.quote', bracket: '@close', next: '@pop' }], // End of template string
+            [/./, 'string'] // Regular string content
+        ],
+
         whitespace: [
             [/[ \t\r\n]+/, ''],
             [/\/\*/, 'comment', '@mlcomment'],
             [/\/\/\s*TODO.*$/,'invalid'],
+            [/\/\/\/\s*TODO.*$/,'invalid'],
             [/\/\/.*$/, 'comment'],
             [/\/\/\/.*$/, 'comment'],
             [/;.*$/, 'comment'],

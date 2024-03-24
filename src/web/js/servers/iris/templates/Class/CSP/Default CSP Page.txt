@@ -1,0 +1,8 @@
+Class Foo.CSPClass1 Extends %CSP.Page
+{
+
+ClassMethod OnPage() As %Status
+{
+}
+
+}

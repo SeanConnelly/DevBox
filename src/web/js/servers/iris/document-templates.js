@@ -10,6 +10,7 @@ export class DocumentTemplates {
 
 let templates = {
     "Registered":["Class %1 Extends %RegisteredObject","{","","}"],
+    "ExtendedRegistered":["Class %1 Extends %RegisteredObject","{","","}"],
     "Persistent":["Class %1 Extends %Persistent","{","","}"],
     "Registered XML":["Class %1 Extends (%RegisteredObject, %XML.Adaptor)","{","","}"],
     "Persistent XML":["Class %1 Extends (%Persistent, %XML.Adaptor)","{","","}"],
